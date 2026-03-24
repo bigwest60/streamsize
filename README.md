@@ -2,12 +2,21 @@
 
 Streamsize is an open source app that helps households estimate the internet plan they actually need instead of automatically paying for oversized service tiers.
 
+An early desktop-first Flutter MVP for helping households avoid overbuying internet service.
+
 It combines:
 - a lightweight local device scan
 - a guided household usage questionnaire
 - a rules-based recommendation engine
 
 The goal is simple: help people understand when 100 Mbps, 300 Mbps, 500 Mbps, or gigabit service is truly justified.
+
+## Screenshots
+
+### Desktop onboarding and device scan
+
+![Streamsize desktop onboarding and device scan](apps/client_flutter/assets/screenshots/streamsize-desktop.png)
+
 
 ## Project status
 
