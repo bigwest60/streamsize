@@ -1,0 +1,23 @@
+name: streamsize_client
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.3.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  streamsize_core:
+    path: ../../packages/core
+  streamsize_platform_discovery:
+    path: ../../packages/platform_discovery
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
