@@ -265,10 +265,14 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
                                           : () => setState(() {
                                                 _stepIndex -= 1;
                                               }),
-                                      onNext: _stepIndex == steps.length - 1 || _isScanning
+                                      onNext: _isScanning
                                           ? null
                                           : () => setState(() {
-                                                _stepIndex += 1;
+                                                if (_stepIndex < steps.length - 1) {
+                                                  _stepIndex += 1;
+                                                } else {
+                                                  _stepIndex = 0;
+                                                }
                                               }),
                                       child: steps[_stepIndex],
                                     ),
@@ -291,10 +295,14 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
                                       : () => setState(() {
                                             _stepIndex -= 1;
                                           }),
-                                  onNext: _stepIndex == steps.length - 1 || _isScanning
+                                  onNext: _isScanning
                                       ? null
                                       : () => setState(() {
-                                            _stepIndex += 1;
+                                            if (_stepIndex < steps.length - 1) {
+                                              _stepIndex += 1;
+                                            } else {
+                                              _stepIndex = 0;
+                                            }
                                           }),
                                   child: steps[_stepIndex],
                                 ),
@@ -353,13 +361,16 @@ class _IntroPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(999),
+          Tooltip(
+            message: 'Streamsize helps you find the right internet plan for your home.',
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Text('Streamsize guide'),
             ),
-            child: const Text('Streamsize guide'),
           ),
           const SizedBox(height: 26),
           Text(
@@ -532,7 +543,7 @@ class _FlowCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: Text(isLast ? 'Done' : 'Continue'),
+                child: Text(isLast ? 'Start over' : 'Continue'),
               ),
             ],
           ),
