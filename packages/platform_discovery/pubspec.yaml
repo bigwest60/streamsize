@@ -6,8 +6,12 @@ environment:
   sdk: ^3.3.0
 
 dependencies:
+  flutter:
+    sdk: flutter
   streamsize_core:
     path: ../core
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   lints: ^5.0.0

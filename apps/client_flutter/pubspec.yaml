@@ -9,6 +9,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  share_plus: ^10.0.0
+  http: ^1.0.0
   streamsize_core:
     path: ../../packages/core
   streamsize_platform_discovery:

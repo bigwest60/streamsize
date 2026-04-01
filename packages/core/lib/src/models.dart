@@ -6,6 +6,7 @@ enum DeviceCategory {
   console('Game console'),
   camera('Security camera'),
   smartHome('Smart home / IoT'),
+  nas('NAS / storage'),
   unknown('Unknown');
 
   const DeviceCategory(this.label);

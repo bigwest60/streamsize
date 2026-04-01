@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Streamsize scans your home network to discover devices and recommend the right internet plan for your household.</string>
 </dict>
 </plist>

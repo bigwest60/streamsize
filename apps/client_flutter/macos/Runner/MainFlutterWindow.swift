@@ -9,6 +9,7 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    StreamsizePlugin.register(with: flutterViewController.registrar(forPlugin: "StreamsizePlugin"))
 
     super.awakeFromNib()
   }

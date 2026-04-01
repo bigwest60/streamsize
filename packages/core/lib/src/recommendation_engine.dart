@@ -22,6 +22,7 @@ class RecommendationEngine {
         (scenario.remoteWorkers * 5) +
         (scenario.securityCameraCount * 3) +
         (scenario.cloudBackupEnabled ? 20 : 0) +
+        (detectedCounts[DeviceCategory.nas] ?? 0) * 5 +
         _homeProfileUpload(scenario.homeProfile);
 
     final normalizedDownload = _normalizeDownload(_withHeadroom(downloadDemand));
@@ -43,7 +44,8 @@ class RecommendationEngine {
         (counts[DeviceCategory.phone] ?? 0) * 2 +
         (counts[DeviceCategory.tablet] ?? 0) * 2 +
         (counts[DeviceCategory.console] ?? 0) * 3 +
-        (counts[DeviceCategory.smartHome] ?? 0);
+        (counts[DeviceCategory.smartHome] ?? 0) +
+        (counts[DeviceCategory.nas] ?? 0) * 10;
   }
 
   int _downloadHabitLoad(LargeDownloadHabit habit) {

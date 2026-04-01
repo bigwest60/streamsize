@@ -1,14 +1,11 @@
 import 'package:streamsize_core/streamsize_core.dart';
-
-abstract class DiscoveryService {
-  List<DetectedDevice> discoverVisibleDevices();
-}
+import 'discovery_service.dart';
 
 class MockDiscoveryService implements DiscoveryService {
   const MockDiscoveryService();
 
   @override
-  List<DetectedDevice> discoverVisibleDevices() {
+  Future<List<DetectedDevice>> discoverVisibleDevices() async {
     return const [
       DetectedDevice(
         displayName: 'Living Room Apple TV',
