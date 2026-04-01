@@ -1501,7 +1501,7 @@ class _ResultNarrativeCard extends StatelessWidget {
             children: [
               Icon(icon, color: const Color(0xFFE07A5F)),
               const SizedBox(width: 10),
-              Text(title, style: theme.textTheme.titleMedium),
+              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
             ],
           ),
           const SizedBox(height: 16),
