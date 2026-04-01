@@ -38,7 +38,7 @@ class StreamsizeApp extends StatelessWidget {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
           ),
         ),
@@ -229,7 +229,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
           const Positioned(
             right: -90,
             bottom: -40,
-            child: _AmbientGlow(color: Color(0xFFE0D3FF), size: 260),
+            child: _AmbientGlow(color: Color(0xFFF5C9A0), size: 260),
           ),
           SafeArea(
             child: Center(
@@ -379,7 +379,7 @@ class _IntroPanel extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.72),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +420,7 @@ class _IntroPanel extends StatelessWidget {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: index <= stepIndex ? const Color(0xFF7C5CFC) : Colors.white,
+                      color: index <= stepIndex ? const Color(0xFFE07A5F) : Colors.white,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     alignment: Alignment.center,
@@ -443,7 +443,7 @@ class _IntroPanel extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: const Color(0xFF2D1E2F),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -521,7 +521,7 @@ class _FlowCard extends StatelessWidget {
                   onPressed: onBack,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: const Text('Back'),
                 ),
@@ -530,7 +530,7 @@ class _FlowCard extends StatelessWidget {
                 onPressed: onNext,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: Text(isLast ? 'Done' : 'Continue'),
               ),
@@ -593,7 +593,7 @@ class _WelcomeStep extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [Color(0xFFFFF7F0), Color(0xFFF5EDE4)],
             ),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
             children: [
@@ -663,7 +663,7 @@ class _DevicesStep extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: const Color(0xFFFFF7F0),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: const Color(0xFFF0E3D8)),
             ),
             child: Column(
@@ -690,7 +690,7 @@ class _DevicesStep extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [Color(0xFFFFF7F0), Color(0xFFF5E9DC)],
               ),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -944,7 +944,7 @@ class _ResultsStep extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [Color(0xFF2D1E2F), Color(0xFF4A3150)],
             ),
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(28),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x22000000),
@@ -1061,7 +1061,7 @@ class _ResultsStep extends StatelessWidget {
           label: const Text('Share this result'),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
         const SizedBox(height: 22),
@@ -1231,7 +1231,7 @@ class _ProgressHeader extends StatelessWidget {
                 margin: EdgeInsets.only(right: index == 3 ? 0 : 10),
                 height: 8,
                 decoration: BoxDecoration(
-                  color: index <= stepIndex ? const Color(0xFF7C5CFC) : const Color(0xFFEFE4D7),
+                  color: index <= stepIndex ? const Color(0xFFE07A5F) : const Color(0xFFEFE4D7),
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
@@ -1261,7 +1261,7 @@ class _MetricTile extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1295,7 +1295,7 @@ class _DeviceInsightCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBF8),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFF0E3D8)),
         boxShadow: const [
           BoxShadow(
@@ -1491,7 +1491,7 @@ class _ResultNarrativeCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBF8),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFF0E3D8)),
       ),
       child: Column(
@@ -1632,7 +1632,7 @@ class _CounterButton extends StatelessWidget {
           color: disabled ? const Color(0xFFF2E6D9) : const Color(0xFFF3E7D8),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Icon(icon, color: disabled ? const Color(0xFFB9A99B) : const Color(0xFF7C5CFC)),
+        child: Icon(icon, color: disabled ? const Color(0xFFB9A99B) : const Color(0xFFE07A5F)),
       ),
     );
   }
