@@ -114,7 +114,12 @@ class RecommendationEngine {
     final totalCameras = detectedCameras > declaredCount ? detectedCameras : declaredCount;
     if (totalCameras == 0) return 0;
     final profile = DeviceCategory.camera.bandwidthProfile;
-    return profile.mbpsForConfidence(ConfidenceScore.medium) * totalCameras;
+    // Use the best detected camera confidence, or medium for declared-only cameras
+    final cameraConfidence = devices
+        .where((d) => d.category == DeviceCategory.camera)
+        .fold<ConfidenceScore>(ConfidenceScore.medium, (best, d) =>
+            d.confidence.index > best.index ? d.confidence : best);
+    return profile.mbpsForConfidence(cameraConfidence) * totalCameras;
   }
 
   int _withHeadroom(int value) => (value * 1.3).ceil();
@@ -148,6 +153,9 @@ class RecommendationEngine {
     Map<DeviceCategory, ConfidenceScore> maxConfidenceByCategory,
   ) {
     final concurrencyOverhead = _concurrencyOverhead(scenario);
+    final effectiveCameraCount = (counts[DeviceCategory.camera] ?? 0) > scenario.securityCameraCount
+        ? counts[DeviceCategory.camera]!
+        : scenario.securityCameraCount;
     return [
       '${scenario.simultaneous4kStreams} simultaneous 4K stream${scenario.simultaneous4kStreams != 1 ? "s" : ""} (25 Mbps each)',
       if (scenario.simultaneousHdStreams > 0)
@@ -158,8 +166,8 @@ class RecommendationEngine {
         '${scenario.remoteWorkers} remote worker${scenario.remoteWorkers != 1 ? "s" : ""} (10 Mbps each)',
       if (scenario.onlineGamers > 0)
         '${scenario.onlineGamers} online gamer${scenario.onlineGamers != 1 ? "s" : ""} (3 Mbps each)',
-      if (scenario.securityCameraCount > 0 || (counts[DeviceCategory.camera] ?? 0) > 0)
-        '${counts[DeviceCategory.camera] ?? scenario.securityCameraCount} security camera${(counts[DeviceCategory.camera] ?? scenario.securityCameraCount) != 1 ? "s" : ""} uploading footage',
+      if (effectiveCameraCount > 0)
+        '$effectiveCameraCount security camera${effectiveCameraCount != 1 ? "s" : ""} uploading footage',
       if (scenario.cloudBackupEnabled)
         'Cloud backup headroom included (20 Mbps)',
       '${scenario.devices.length} device${scenario.devices.length != 1 ? "s" : ""} on the network',

@@ -401,4 +401,40 @@ void main() {
     // High confidence TV should show "up to 25 Mbps each"
     expect(recommendation.reasons.any((r) => r.contains('up to 25 Mbps each')), isTrue);
   });
+
+  test('mixed confidence within same category uses max confidence', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'TV 1',
+          category: DeviceCategory.tv,
+          confidence: ConfidenceScore.low,
+          connection: ConnectionType.wifi,
+        ),
+        DetectedDevice(
+          displayName: 'TV 2',
+          category: DeviceCategory.tv,
+          confidence: ConfidenceScore.high,
+          connection: ConnectionType.ethernet,
+        ),
+      ],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // Max confidence is high → typical Mbps for TV = 25, so 2 * 25 = 50
+    // Home small = 10, total = 60, headroom = 78 → 100
+    expect(recommendation.downloadMbps, 100);
+    // TV reason should show "up to" (high confidence label)
+    expect(recommendation.reasons.any((r) => r.contains('up to 25 Mbps each')), isTrue);
+  });
 }
