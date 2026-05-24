@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:streamsize_core/streamsize_core.dart';
@@ -156,29 +158,30 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
 
   Future<void> _shareText(PlanRecommendation recommendation) async {
     final text = buildShareText(recommendation, _scenario);
-    await Share.share(text).catchError((Object _) {
-      Clipboard.setData(ClipboardData(text: text));
+    try {
+      await Share.share(text);
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: text));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Result copied to clipboard')),
         );
       }
-      return ShareResult('', ShareResultStatus.dismissed);
-    });
+    }
   }
 
   Future<void> _exportPdf(PlanRecommendation recommendation) async {
     try {
       final bytes = await generateResultPdf(recommendation, _scenario);
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/streamsize_recommendation.pdf');
+      final file = File(p.join(tempDir.path, 'streamsize_recommendation.pdf'));
       await file.writeAsBytes(bytes, flush: true);
-      final xfile = XFile(file.path, mimeType: 'application/pdf', name: 'Streamsize Recommendation.pdf');
+      final xfile = XFile(file.path, mimeType: 'application/pdf');
       await Share.shareXFiles([xfile], text: 'My Streamsize internet recommendation');
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not export PDF: $e')),
+          const SnackBar(content: Text('Could not export PDF. Please try again.')),
         );
       }
     }
@@ -232,8 +235,8 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
         measuredDownloadMbps: _measuredDownloadMbps,
         measuredUploadMbps: _measuredUploadMbps,
         onRunSpeedTest: _runSpeedTest,
-        onShareText: () => _shareText(recommendation),
-        onExportPdf: () => _exportPdf(recommendation),
+        onShareText: () => unawaited(_shareText(recommendation)),
+        onExportPdf: () => unawaited(_exportPdf(recommendation)),
       ),
     ];
 
