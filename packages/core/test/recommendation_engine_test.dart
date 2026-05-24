@@ -191,7 +191,7 @@ void main() {
 
     final recommendation = engine.buildRecommendation(scenario);
 
-    expect(recommendation.reasons.any((r) => r.contains('25 Mbps each')), isTrue);
+    expect(recommendation.reasons.any((r) => r.contains('Mbps each')), isTrue);
     expect(recommendation.reasons.any((r) => r.contains('Concurrency overhead')), isTrue);
     expect(recommendation.reasons.any((r) => r.contains('Weekly large downloads')), isTrue);
   });
@@ -275,5 +275,130 @@ void main() {
     // Only home profile small (10 Mbps) + 30% headroom = 13 → round to 100
     // Unknown device should NOT contribute bandwidth
     expect(recommendation.downloadMbps, 100);
+  });
+
+  test('camera upload uses detected count when higher than declared', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'Camera 1',
+          category: DeviceCategory.camera,
+          confidence: ConfidenceScore.medium,
+          connection: ConnectionType.wifi,
+        ),
+        DetectedDevice(
+          displayName: 'Camera 2',
+          category: DeviceCategory.camera,
+          confidence: ConfidenceScore.medium,
+          connection: ConnectionType.wifi,
+        ),
+        DetectedDevice(
+          displayName: 'Camera 3',
+          category: DeviceCategory.camera,
+          confidence: ConfidenceScore.medium,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 1,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // 3 detected cameras with medium confidence: (2+5)/2=4 Mbps each * 3 = 12 Mbps upload
+    // Plus home profile small upload = 5, total = 17, headroom = 23 → normalize to 50
+    expect(recommendation.uploadMbps, 50);
+  });
+
+  test('camera upload uses declared count when no detected cameras', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 2,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // 2 declared cameras * 4 Mbps each = 8, home profile upload = 5, total = 13, headroom = 17 → 20
+    expect(recommendation.uploadMbps, 20);
+  });
+
+  test('confidence is medium with cloud backup but no devices', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: true,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    expect(recommendation.confidence, ConfidenceScore.medium);
+  });
+
+  test('confidence is medium with daily download habit but no devices', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.daily,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    expect(recommendation.confidence, ConfidenceScore.medium);
+  });
+
+  test('TV reason shows confidence-weighted Mbps', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'TV',
+          category: DeviceCategory.tv,
+          confidence: ConfidenceScore.high,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      simultaneous4kStreams: 1,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // High confidence TV should show "up to 25 Mbps each"
+    expect(recommendation.reasons.any((r) => r.contains('up to 25 Mbps each')), isTrue);
   });
 }

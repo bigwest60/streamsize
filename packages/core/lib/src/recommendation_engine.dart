@@ -8,6 +8,15 @@ class RecommendationEngine {
       detectedCounts.update(device.category, (value) => value + 1, ifAbsent: () => 1);
     }
 
+    final maxConfidenceByCategory = <DeviceCategory, ConfidenceScore>{};
+    for (final device in scenario.devices) {
+      if (device.category == DeviceCategory.unknown) continue;
+      final existing = maxConfidenceByCategory[device.category];
+      if (existing == null || device.confidence.index > existing.index) {
+        maxConfidenceByCategory[device.category] = device.confidence;
+      }
+    }
+
     final downloadDemand =
         (scenario.simultaneous4kStreams * 25) +
         (scenario.simultaneousHdStreams * 8) +
@@ -15,7 +24,7 @@ class RecommendationEngine {
         (scenario.remoteWorkers * 10) +
         (scenario.onlineGamers * 3) +
         _downloadHabitLoad(scenario.largeDownloadHabit) +
-        _deviceBaselineDownloadWeighted(scenario.devices, detectedCounts) +
+        _deviceBaselineDownloadWeighted(maxConfidenceByCategory, detectedCounts) +
         _homeProfileDownload(scenario.homeProfile) +
         _concurrencyOverhead(scenario);
 
@@ -35,24 +44,15 @@ class RecommendationEngine {
       uploadMbps: normalizedUpload,
       planLabel: '${normalizedDownload}/${normalizedUpload}',
       summary: _summary(normalizedDownload, normalizedUpload),
-      reasons: _buildReasons(scenario, detectedCounts),
+      reasons: _buildReasons(scenario, detectedCounts, maxConfidenceByCategory),
       confidence: _confidenceFor(scenario),
     );
   }
 
   int _deviceBaselineDownloadWeighted(
-    List<DetectedDevice> devices,
+    Map<DeviceCategory, ConfidenceScore> maxConfidenceByCategory,
     Map<DeviceCategory, int> counts,
   ) {
-    final maxConfidenceByCategory = <DeviceCategory, ConfidenceScore>{};
-    for (final device in devices) {
-      if (device.category == DeviceCategory.unknown) continue;
-      final existing = maxConfidenceByCategory[device.category];
-      if (existing == null || device.confidence.index > existing.index) {
-        maxConfidenceByCategory[device.category] = device.confidence;
-      }
-    }
-
     int total = 0;
     for (final entry in counts.entries) {
       final category = entry.key;
@@ -111,7 +111,7 @@ class RecommendationEngine {
 
   int _cameraUploadLoad(List<DetectedDevice> devices, int declaredCount) {
     final detectedCameras = devices.where((d) => d.category == DeviceCategory.camera).length;
-    final totalCameras = detectedCameras > 0 ? detectedCameras : declaredCount;
+    final totalCameras = detectedCameras > declaredCount ? detectedCameras : declaredCount;
     if (totalCameras == 0) return 0;
     final profile = DeviceCategory.camera.bandwidthProfile;
     return profile.mbpsForConfidence(ConfidenceScore.medium) * totalCameras;
@@ -142,7 +142,11 @@ class RecommendationEngine {
     return 'Best for heavy simultaneous usage, many users, or creator-style upload needs.';
   }
 
-  List<String> _buildReasons(HouseholdScenario scenario, Map<DeviceCategory, int> counts) {
+  List<String> _buildReasons(
+    HouseholdScenario scenario,
+    Map<DeviceCategory, int> counts,
+    Map<DeviceCategory, ConfidenceScore> maxConfidenceByCategory,
+  ) {
     final concurrencyOverhead = _concurrencyOverhead(scenario);
     return [
       '${scenario.simultaneous4kStreams} simultaneous 4K stream${scenario.simultaneous4kStreams != 1 ? "s" : ""} (25 Mbps each)',
@@ -160,12 +164,23 @@ class RecommendationEngine {
         'Cloud backup headroom included (20 Mbps)',
       '${scenario.devices.length} device${scenario.devices.length != 1 ? "s" : ""} on the network',
       if ((counts[DeviceCategory.tv] ?? 0) > 0)
-        '${counts[DeviceCategory.tv]} TV/streamer${(counts[DeviceCategory.tv]) != 1 ? "s" : ""} (typical ${DeviceCategory.tv.bandwidthProfile.typicalMbps} Mbps each)',
+        '${counts[DeviceCategory.tv]} TV/streamer${(counts[DeviceCategory.tv]) != 1 ? "s" : ""} (${_confidenceLabel(maxConfidenceByCategory[DeviceCategory.tv])} ${DeviceCategory.tv.bandwidthProfile.mbpsForConfidence(maxConfidenceByCategory[DeviceCategory.tv] ?? ConfidenceScore.medium)} Mbps each)',
       if (scenario.largeDownloadHabit != LargeDownloadHabit.rarely)
         '${scenario.largeDownloadHabit.label} large downloads (+${_downloadHabitLoad(scenario.largeDownloadHabit)} Mbps)',
       if (concurrencyOverhead > 0)
         'Concurrency overhead: $concurrencyOverhead Mbps for ${scenario.simultaneous4kStreams + scenario.simultaneousHdStreams + scenario.simultaneousVideoCalls + scenario.remoteWorkers + scenario.onlineGamers} simultaneous active streams',
     ];
+  }
+
+  String _confidenceLabel(ConfidenceScore? confidence) {
+    switch (confidence ?? ConfidenceScore.medium) {
+      case ConfidenceScore.high:
+        return 'up to';
+      case ConfidenceScore.medium:
+        return '~';
+      case ConfidenceScore.low:
+        return 'at least';
+    }
   }
 
   ConfidenceScore _confidenceFor(HouseholdScenario scenario) {
@@ -177,7 +192,10 @@ class RecommendationEngine {
         scenario.simultaneousHdStreams > 0 ||
         scenario.simultaneousVideoCalls > 0 ||
         scenario.remoteWorkers > 0 ||
-        scenario.onlineGamers > 0;
+        scenario.onlineGamers > 0 ||
+        scenario.securityCameraCount > 0 ||
+        scenario.cloudBackupEnabled ||
+        scenario.largeDownloadHabit != LargeDownloadHabit.rarely;
 
     if (totalDevices >= 4 && ratio >= 0.6 && hasExplicitUsage) {
       return ConfidenceScore.high;
