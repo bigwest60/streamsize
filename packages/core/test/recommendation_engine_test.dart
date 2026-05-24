@@ -426,8 +426,8 @@ void main() {
     );
 
     final recommendation = engine.buildRecommendation(scenario);
-    // High confidence TV should show "up to 25 Mbps each"
-    expect(recommendation.reasons.any((r) => r.contains('up to 25 Mbps each')), isTrue);
+    // High confidence TV should show "~ 25 Mbps each"
+    expect(recommendation.reasons.any((r) => r.contains('~ 25 Mbps each')), isTrue);
   });
 
   test('mixed confidence within same category uses max confidence', () {
@@ -463,7 +463,7 @@ void main() {
     // Home small = 10, total = 60, headroom = 78 → 100
     expect(recommendation.downloadMbps, 100);
     // TV reason should show "up to" (high confidence label)
-    expect(recommendation.reasons.any((r) => r.contains('up to 25 Mbps each')), isTrue);
+    expect(recommendation.reasons.any((r) => r.contains('~ 25 Mbps each')), isTrue);
   });
 
   test('low-confidence detected cameras use min Mbps, not medium', () {

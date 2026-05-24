@@ -3,14 +3,10 @@ import 'models.dart';
 class RecommendationEngine {
   PlanRecommendation buildRecommendation(HouseholdScenario scenario) {
     final detectedCounts = <DeviceCategory, int>{};
-    for (final device in scenario.devices) {
-      if (device.category == DeviceCategory.unknown) continue;
-      detectedCounts.update(device.category, (value) => value + 1, ifAbsent: () => 1);
-    }
-
     final maxConfidenceByCategory = <DeviceCategory, ConfidenceScore>{};
     for (final device in scenario.devices) {
       if (device.category == DeviceCategory.unknown) continue;
+      detectedCounts.update(device.category, (value) => value + 1, ifAbsent: () => 1);
       final existing = maxConfidenceByCategory[device.category];
       if (existing == null || device.confidence.index > existing.index) {
         maxConfidenceByCategory[device.category] = device.confidence;
@@ -174,7 +170,7 @@ class RecommendationEngine {
       if (effectiveCameraCount > 0)
         '$effectiveCameraCount security camera${effectiveCameraCount != 1 ? "s" : ""} uploading footage',
       if (scenario.cloudBackupEnabled)
-        'Cloud backup headroom included (20 Mbps)',
+        'Cloud backup upload headroom included (20 Mbps)',
       '${scenario.devices.length} device${scenario.devices.length != 1 ? "s" : ""} on the network',
       if ((counts[DeviceCategory.tv] ?? 0) > 0)
         '${counts[DeviceCategory.tv]} TV/streamer${(counts[DeviceCategory.tv]) != 1 ? "s" : ""} (${_confidenceLabel(maxConfidenceByCategory[DeviceCategory.tv])} ${DeviceCategory.tv.bandwidthProfile.mbpsForConfidence(maxConfidenceByCategory[DeviceCategory.tv] ?? ConfidenceScore.medium)} Mbps each)',
@@ -188,7 +184,7 @@ class RecommendationEngine {
   String _confidenceLabel(ConfidenceScore? confidence) {
     switch (confidence ?? ConfidenceScore.medium) {
       case ConfidenceScore.high:
-        return 'up to';
+        return '~';
       case ConfidenceScore.medium:
         return '~';
       case ConfidenceScore.low:
