@@ -57,12 +57,23 @@ void main() {
   });
 
   group('MDNSDiscoveryService.discoverVisibleDevices', () {
-    test('returns empty devices with platformSupportsScan=false when channel throws MissingPluginException', () async {
-      // Simulate a non-macOS platform where the native plugin is absent
-      // by setting a mock handler that always throws MissingPluginException.
+    test('short-circuits with platformSupportsScan=false on non-macOS without invoking channel', () async {
+      // On the default test platform (android), isPlatformSupported is false,
+      // so discoverVisibleDevices returns immediately without calling the channel.
+      final sut = MDNSDiscoveryService();
+      final result = await sut.discoverVisibleDevices();
+      expect(result.platformSupportsScan, isFalse);
+      expect(result.devices, isEmpty);
+    });
+
+    test('catches MissingPluginException and returns platformSupportsScan=false on macOS', () async {
+      // Override to macOS so the channel is invoked, but the plugin is absent.
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('com.streamsize/mdns'),
+        const MethodChannel('com/streamsize/mdns'),
         (MethodCall methodCall) async {
           throw MissingPluginException('no plugin');
         },
@@ -70,7 +81,7 @@ void main() {
       addTearDown(() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(
-          const MethodChannel('com.streamsize/mdns'),
+          const MethodChannel('com/streamsize/mdns'),
           null,
         );
       });

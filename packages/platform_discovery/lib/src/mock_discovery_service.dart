@@ -6,8 +6,8 @@ class MockDiscoveryService implements DiscoveryService {
 
   @override
   Future<DiscoveryResult> discoverVisibleDevices() async {
-    return DiscoveryResult(
-      devices: const [
+    return const DiscoveryResult(
+      devices: [
         DetectedDevice(
           displayName: 'Living Room Apple TV',
           category: DeviceCategory.tv,
