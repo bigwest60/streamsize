@@ -441,15 +441,16 @@ void main() {
   test('low-confidence detected cameras use min Mbps, not medium', () {
     final engine = RecommendationEngine();
     final scenario = HouseholdScenario(
-      homeProfile: HomeProfile.small,
-      devices: const [
-        DetectedDevice(
+      homeProfile: HomeProfile.large,
+      devices: List.generate(
+        5,
+        (_) => const DetectedDevice(
           displayName: 'Camera',
           category: DeviceCategory.camera,
           confidence: ConfidenceScore.low,
           connection: ConnectionType.wifi,
         ),
-      ],
+      ),
       simultaneous4kStreams: 0,
       simultaneousHdStreams: 0,
       simultaneousVideoCalls: 0,
@@ -461,71 +462,10 @@ void main() {
     );
 
     final recommendation = engine.buildRecommendation(scenario);
-    // 1 low-confidence camera: minMbps=2, home upload=5, total=7, headroom=10 → 20
-    // If bug (medium instead of low): (2+5)/2=4, home=5, total=9, headroom=12 → 20
-    // Both happen to normalize to 20, so verify via reasons instead
-    // The key assertion: low confidence should NOT be treated as medium
-    // With proper logic, the effective camera upload is 2 Mbps (min)
-    // With the bug, it would be 4 Mbps (medium average)
-    // Let's verify the total upload to distinguish:
-    // With fix: 2 (camera min) + 5 (home small) = 7, *1.3 = 10 → 20
-    // With bug: 4 (camera medium) + 5 (home small) = 9, *1.3 = 12 → 20
-    // Both normalize to 20, so use a scenario where the difference matters
-    expect(recommendation.uploadMbps, 20);
-  });
-
-  test('low-confidence detected cameras produce lower upload than high-confidence', () {
-    final engine = RecommendationEngine();
-
-    final lowConfScenario = HouseholdScenario(
-      homeProfile: HomeProfile.small,
-      devices: const [
-        DetectedDevice(
-          displayName: 'Cam',
-          category: DeviceCategory.camera,
-          confidence: ConfidenceScore.low,
-          connection: ConnectionType.wifi,
-        ),
-      ],
-      simultaneous4kStreams: 0,
-      simultaneousHdStreams: 0,
-      simultaneousVideoCalls: 0,
-      remoteWorkers: 0,
-      onlineGamers: 0,
-      cloudBackupEnabled: false,
-      securityCameraCount: 0,
-      largeDownloadHabit: LargeDownloadHabit.rarely,
-    );
-
-    final highConfScenario = HouseholdScenario(
-      homeProfile: HomeProfile.small,
-      devices: const [
-        DetectedDevice(
-          displayName: 'Cam',
-          category: DeviceCategory.camera,
-          confidence: ConfidenceScore.high,
-          connection: ConnectionType.wifi,
-        ),
-      ],
-      simultaneous4kStreams: 0,
-      simultaneousHdStreams: 0,
-      simultaneousVideoCalls: 0,
-      remoteWorkers: 0,
-      onlineGamers: 0,
-      cloudBackupEnabled: false,
-      securityCameraCount: 0,
-      largeDownloadHabit: LargeDownloadHabit.rarely,
-    );
-
-    final lowRec = engine.buildRecommendation(lowConfScenario);
-    final highRec = engine.buildRecommendation(highConfScenario);
-    // High-confidence camera (5 Mbps typical) should produce higher or equal upload
-    // than low-confidence (2 Mbps min)
-    expect(highRec.uploadMbps, greaterThanOrEqualTo(lowRec.uploadMbps));
-    // Specifically, they should NOT be equal since 2 != 5
-    // low: 2 + 5 = 7 * 1.3 = 10 → 20
-    // high: 5 + 5 = 10 * 1.3 = 13 → 20
-    // Both normalize to 20 with 1 camera. Use more cameras to see difference.
+    // 5 low-confidence cameras * minMbps 2 = 10, home large upload = 20, total = 30
+    // headroom = 39 → 50
+    // If bug (medium=(2+5)/2=4): 5*4=20 + 20 = 40, headroom = 52 → 100
+    expect(recommendation.uploadMbps, 50);
   });
 
   test('multiple low-confidence cameras produce distinctly lower upload than high-confidence', () {
