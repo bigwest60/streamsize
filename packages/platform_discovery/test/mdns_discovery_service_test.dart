@@ -71,10 +71,12 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
+      var handlerInvoked = false;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         const MethodChannel('com.streamsize/mdns'),
         (MethodCall methodCall) async {
+          handlerInvoked = true;
           throw MissingPluginException('no plugin');
         },
       );
@@ -88,6 +90,7 @@ void main() {
 
       final sut = MDNSDiscoveryService();
       final result = await sut.discoverVisibleDevices();
+      expect(handlerInvoked, isTrue);
       expect(result.platformSupportsScan, isFalse);
       expect(result.devices, isEmpty);
     });
