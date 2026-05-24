@@ -462,7 +462,7 @@ void main() {
     // Max confidence is high → typical Mbps for TV = 25, so 2 * 25 = 50
     // Home small = 10, total = 60, headroom = 78 → 100
     expect(recommendation.downloadMbps, 100);
-    // TV reason should show "up to" (high confidence label)
+    // TV reason should show "~" (high confidence label) with typical Mbps
     expect(recommendation.reasons.any((r) => r.contains('~ 25 Mbps each')), isTrue);
   });
 
