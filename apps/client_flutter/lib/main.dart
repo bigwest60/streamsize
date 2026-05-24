@@ -73,6 +73,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
   final List<DetectedDevice> _manualDevices = [];
   bool _isScanning = true;
   bool _isSpeedTesting = false;
+  bool _platformSupportsScan = true;
   double? _measuredDownloadMbps;
   double? _measuredUploadMbps;
   int _stepIndex = 0;
@@ -108,11 +109,12 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
 
   Future<void> _discoverDevices() async {
     debugPrint('[main.dart] _discoverDevices called');
-    final devices = await _discovery.discoverVisibleDevices();
-    debugPrint('[main.dart] discovered ${devices.length} devices');
+    final result = await _discovery.discoverVisibleDevices();
+    debugPrint('[main.dart] discovered ${result.devices.length} devices, platformSupportsScan=${result.platformSupportsScan}');
     if (!mounted) return;
     setState(() {
-      _devices = List<DetectedDevice>.from(devices);
+      _devices = List<DetectedDevice>.from(result.devices);
+      _platformSupportsScan = result.platformSupportsScan;
       _isScanning = false;
       _scenario = _scenario.copyWith(devices: _allDevices);
     });
@@ -195,6 +197,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
       _DevicesStep(
         devices: _allDevices,
         isScanning: _isScanning,
+        platformSupportsScan: _platformSupportsScan,
         onCategoryChanged: _onCategoryChanged,
         onAddDeviceManually: _addDeviceManually,
       ),
@@ -665,12 +668,14 @@ class _DevicesStep extends StatelessWidget {
   const _DevicesStep({
     required this.devices,
     required this.isScanning,
+    required this.platformSupportsScan,
     required this.onCategoryChanged,
     required this.onAddDeviceManually,
   });
 
   final List<DetectedDevice> devices;
   final bool isScanning;
+  final bool platformSupportsScan;
   final void Function(DetectedDevice device, DeviceCategory category) onCategoryChanged;
   final VoidCallback onAddDeviceManually;
 
@@ -703,10 +708,15 @@ class _DevicesStep extends StatelessWidget {
               children: [
                 const Icon(Icons.wifi_find_rounded, size: 40, color: Color(0xFFE07A5F)),
                 const SizedBox(height: 12),
-                Text('No devices detected', style: theme.textTheme.titleMedium),
+                Text(
+                  platformSupportsScan ? 'No devices detected' : 'Network scan not available',
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'The scan finished but found nothing. This happens on some routers with mDNS isolation. Add your devices manually below — the recommendation will still be accurate.',
+                  platformSupportsScan
+                      ? 'The scan finished but found nothing. This happens on some routers with mDNS isolation. Add your devices manually below — the recommendation will still be accurate.'
+                      : 'Automatic network scanning is only available on macOS right now. Add your devices manually below — the recommendation will still be accurate.',
                   style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
                   textAlign: TextAlign.center,
                 ),
