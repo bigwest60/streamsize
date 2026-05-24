@@ -73,7 +73,7 @@ void main() {
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('com/streamsize/mdns'),
+        const MethodChannel('com.streamsize/mdns'),
         (MethodCall methodCall) async {
           throw MissingPluginException('no plugin');
         },
@@ -81,7 +81,7 @@ void main() {
       addTearDown(() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(
-          const MethodChannel('com/streamsize/mdns'),
+          const MethodChannel('com.streamsize/mdns'),
           null,
         );
       });
