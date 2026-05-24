@@ -17,3 +17,8 @@ coverage/
 **/Generated.xcconfig
 **/Pods/
 **/Flutter/ephemeral/
+
+# Droid-generated files
+.factory/skills/ship/
+.worktrees/
+Straemsize_OpenIssues_Report.html

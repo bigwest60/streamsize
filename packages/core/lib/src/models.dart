@@ -11,6 +11,52 @@ enum DeviceCategory {
 
   const DeviceCategory(this.label);
   final String label;
+
+  DeviceBandwidthProfile get bandwidthProfile {
+    switch (this) {
+      case DeviceCategory.tv:
+        return const DeviceBandwidthProfile(minMbps: 5, typicalMbps: 25, maxMbps: 100);
+      case DeviceCategory.phone:
+        return const DeviceBandwidthProfile(minMbps: 2, typicalMbps: 10, maxMbps: 50);
+      case DeviceCategory.tablet:
+        return const DeviceBandwidthProfile(minMbps: 2, typicalMbps: 10, maxMbps: 50);
+      case DeviceCategory.laptop:
+        return const DeviceBandwidthProfile(minMbps: 5, typicalMbps: 25, maxMbps: 100);
+      case DeviceCategory.console:
+        return const DeviceBandwidthProfile(minMbps: 5, typicalMbps: 25, maxMbps: 100);
+      case DeviceCategory.camera:
+        return const DeviceBandwidthProfile(minMbps: 2, typicalMbps: 5, maxMbps: 20);
+      case DeviceCategory.smartHome:
+        return const DeviceBandwidthProfile(minMbps: 1, typicalMbps: 2, maxMbps: 10);
+      case DeviceCategory.nas:
+        return const DeviceBandwidthProfile(minMbps: 5, typicalMbps: 10, maxMbps: 50);
+      case DeviceCategory.unknown:
+        return const DeviceBandwidthProfile(minMbps: 1, typicalMbps: 3, maxMbps: 10);
+    }
+  }
+}
+
+class DeviceBandwidthProfile {
+  const DeviceBandwidthProfile({
+    required this.minMbps,
+    required this.typicalMbps,
+    required this.maxMbps,
+  });
+
+  final int minMbps;
+  final int typicalMbps;
+  final int maxMbps;
+
+  int mbpsForConfidence(ConfidenceScore confidence) {
+    switch (confidence) {
+      case ConfidenceScore.high:
+        return typicalMbps;
+      case ConfidenceScore.medium:
+        return ((minMbps + typicalMbps) / 2).round();
+      case ConfidenceScore.low:
+        return minMbps;
+    }
+  }
 }
 
 enum ConfidenceScore { low, medium, high }
