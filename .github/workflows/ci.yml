@@ -19,10 +19,19 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
+          channel: stable
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Install core dependencies
+        run: cd packages/core && dart pub get
+
+      - name: Install platform_discovery dependencies
+        run: cd packages/platform_discovery && flutter pub get
+
+      - name: Install app dependencies
+        run: cd apps/client_flutter && flutter pub get
 
       - name: Analyze core package
         run: cd packages/core && dart analyze --fatal-infos
@@ -32,6 +41,9 @@ jobs:
 
       - name: Analyze platform_discovery package
         run: cd packages/platform_discovery && dart analyze --fatal-infos
+
+      - name: Test platform_discovery package
+        run: cd packages/platform_discovery && flutter test
 
       - name: Analyze Flutter app
         run: cd apps/client_flutter && flutter analyze --fatal-infos
