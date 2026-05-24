@@ -4,6 +4,7 @@ class RecommendationEngine {
   PlanRecommendation buildRecommendation(HouseholdScenario scenario) {
     final detectedCounts = <DeviceCategory, int>{};
     for (final device in scenario.devices) {
+      if (device.category == DeviceCategory.unknown) continue;
       detectedCounts.update(device.category, (value) => value + 1, ifAbsent: () => 1);
     }
 
@@ -43,12 +44,12 @@ class RecommendationEngine {
     List<DetectedDevice> devices,
     Map<DeviceCategory, int> counts,
   ) {
-    final avgConfidenceByCategory = <DeviceCategory, ConfidenceScore>{};
+    final maxConfidenceByCategory = <DeviceCategory, ConfidenceScore>{};
     for (final device in devices) {
       if (device.category == DeviceCategory.unknown) continue;
-      final existing = avgConfidenceByCategory[device.category];
+      final existing = maxConfidenceByCategory[device.category];
       if (existing == null || device.confidence.index > existing.index) {
-        avgConfidenceByCategory[device.category] = device.confidence;
+        maxConfidenceByCategory[device.category] = device.confidence;
       }
     }
 
@@ -57,7 +58,7 @@ class RecommendationEngine {
       final category = entry.key;
       final count = entry.value;
       final profile = category.bandwidthProfile;
-      final confidence = avgConfidenceByCategory[category] ?? ConfidenceScore.medium;
+      final confidence = maxConfidenceByCategory[category] ?? ConfidenceScore.medium;
       total += profile.mbpsForConfidence(confidence) * count;
     }
     return total;
@@ -142,8 +143,11 @@ class RecommendationEngine {
   }
 
   List<String> _buildReasons(HouseholdScenario scenario, Map<DeviceCategory, int> counts) {
+    final concurrencyOverhead = _concurrencyOverhead(scenario);
     return [
       '${scenario.simultaneous4kStreams} simultaneous 4K stream${scenario.simultaneous4kStreams != 1 ? "s" : ""} (25 Mbps each)',
+      if (scenario.simultaneousHdStreams > 0)
+        '${scenario.simultaneousHdStreams} simultaneous HD stream${scenario.simultaneousHdStreams != 1 ? "s" : ""} (8 Mbps each)',
       if (scenario.simultaneousVideoCalls > 0)
         '${scenario.simultaneousVideoCalls} live video call${scenario.simultaneousVideoCalls != 1 ? "s" : ""} (6 Mbps down / 4 Mbps up)',
       if (scenario.remoteWorkers > 0)
@@ -159,17 +163,12 @@ class RecommendationEngine {
         '${counts[DeviceCategory.tv]} TV/streamer${(counts[DeviceCategory.tv]) != 1 ? "s" : ""} (typical ${DeviceCategory.tv.bandwidthProfile.typicalMbps} Mbps each)',
       if (scenario.largeDownloadHabit != LargeDownloadHabit.rarely)
         '${scenario.largeDownloadHabit.label} large downloads (+${_downloadHabitLoad(scenario.largeDownloadHabit)} Mbps)',
-      if (_concurrencyOverhead(scenario) > 0)
-        'Concurrency overhead: ${_concurrencyOverhead(scenario)} Mbps for ${scenario.simultaneous4kStreams + scenario.simultaneousHdStreams + scenario.simultaneousVideoCalls + scenario.remoteWorkers + scenario.onlineGamers} simultaneous active streams',
+      if (concurrencyOverhead > 0)
+        'Concurrency overhead: $concurrencyOverhead Mbps for ${scenario.simultaneous4kStreams + scenario.simultaneousHdStreams + scenario.simultaneousVideoCalls + scenario.remoteWorkers + scenario.onlineGamers} simultaneous active streams',
     ];
   }
 
   ConfidenceScore _confidenceFor(HouseholdScenario scenario) {
-    final detectedCounts = <DeviceCategory, int>{};
-    for (final device in scenario.devices) {
-      detectedCounts.update(device.category, (v) => v + 1, ifAbsent: () => 1);
-    }
-
     final highConfidenceDevices = scenario.devices.where((d) => d.confidence == ConfidenceScore.high).length;
     final totalDevices = scenario.devices.length;
     final ratio = totalDevices > 0 ? highConfidenceDevices / totalDevices : 0.0;

@@ -221,4 +221,59 @@ void main() {
     final recommendation = engine.buildRecommendation(scenario);
     expect(recommendation.reasons.any((r) => r.contains('Concurrency overhead')), isFalse);
   });
+
+  test('HD streams appear in reasons when present', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'TV',
+          category: DeviceCategory.tv,
+          confidence: ConfidenceScore.high,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 2,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    expect(recommendation.reasons.any((r) => r.contains('HD stream')), isTrue);
+    expect(recommendation.reasons.any((r) => r.contains('8 Mbps each')), isTrue);
+  });
+
+  test('unknown devices are excluded from baseline', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'Mystery Device',
+          category: DeviceCategory.unknown,
+          confidence: ConfidenceScore.low,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 0,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // Only home profile small (10 Mbps) + 30% headroom = 13 → round to 100
+    // Unknown device should NOT contribute bandwidth
+    expect(recommendation.downloadMbps, 100);
+  });
 }
