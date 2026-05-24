@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze core package
+        run: cd packages/core && dart analyze --fatal-infos
+
+      - name: Test core package
+        run: cd packages/core && dart test
+
+      - name: Analyze platform_discovery package
+        run: cd packages/platform_discovery && dart analyze --fatal-infos
+
+      - name: Analyze Flutter app
+        run: cd apps/client_flutter && flutter analyze --fatal-infos
+
+      - name: Test Flutter app
+        run: cd apps/client_flutter && flutter test
