@@ -337,6 +337,34 @@ void main() {
     expect(recommendation.uploadMbps, 20);
   });
 
+  test('camera upload blends detected and declared cameras with different confidence', () {
+    final engine = RecommendationEngine();
+    final scenario = HouseholdScenario(
+      homeProfile: HomeProfile.small,
+      devices: const [
+        DetectedDevice(
+          displayName: 'Camera 1',
+          category: DeviceCategory.camera,
+          confidence: ConfidenceScore.high,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      simultaneous4kStreams: 0,
+      simultaneousHdStreams: 0,
+      simultaneousVideoCalls: 0,
+      remoteWorkers: 0,
+      onlineGamers: 0,
+      cloudBackupEnabled: false,
+      securityCameraCount: 3,
+      largeDownloadHabit: LargeDownloadHabit.rarely,
+    );
+
+    final recommendation = engine.buildRecommendation(scenario);
+    // 1 detected (high, typical=5 Mbps) + 2 declared-only (medium, 4 Mbps each) = 5 + 8 = 13
+    // Plus home small upload = 5, total = 18, headroom = 24 → 50
+    expect(recommendation.uploadMbps, 50);
+  });
+
   test('confidence is medium with cloud backup but no devices', () {
     final engine = RecommendationEngine();
     final scenario = HouseholdScenario(

@@ -110,18 +110,20 @@ class RecommendationEngine {
   }
 
   int _cameraUploadLoad(List<DetectedDevice> devices, int declaredCount) {
-    final detectedCameras = devices.where((d) => d.category == DeviceCategory.camera).length;
+    final cameraDevices = devices.where((d) => d.category == DeviceCategory.camera).toList();
+    final detectedCameras = cameraDevices.length;
     final totalCameras = detectedCameras > declaredCount ? detectedCameras : declaredCount;
     if (totalCameras == 0) return 0;
     final profile = DeviceCategory.camera.bandwidthProfile;
-    final cameraDevices = devices.where((d) => d.category == DeviceCategory.camera);
-    // Use the best detected camera confidence; fall back to medium for declared-only cameras
-    final cameraConfidence = cameraDevices.isEmpty
+    // Best detected camera confidence for detected cameras; medium for declared-only
+    final detectedConfidence = cameraDevices.isEmpty
         ? ConfidenceScore.medium
         : cameraDevices.fold<ConfidenceScore>(
             cameraDevices.first.confidence, (best, d) =>
                 d.confidence.index > best.index ? d.confidence : best);
-    return profile.mbpsForConfidence(cameraConfidence) * totalCameras;
+    final declaredOnlyCount = declaredCount > detectedCameras ? declaredCount - detectedCameras : 0;
+    return (profile.mbpsForConfidence(detectedConfidence) * detectedCameras) +
+        (profile.mbpsForConfidence(ConfidenceScore.medium) * declaredOnlyCount);
   }
 
   int _withHeadroom(int value) => (value * 1.3).ceil();
