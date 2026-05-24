@@ -114,11 +114,13 @@ class RecommendationEngine {
     final totalCameras = detectedCameras > declaredCount ? detectedCameras : declaredCount;
     if (totalCameras == 0) return 0;
     final profile = DeviceCategory.camera.bandwidthProfile;
-    // Use the best detected camera confidence, or medium for declared-only cameras
-    final cameraConfidence = devices
-        .where((d) => d.category == DeviceCategory.camera)
-        .fold<ConfidenceScore>(ConfidenceScore.medium, (best, d) =>
-            d.confidence.index > best.index ? d.confidence : best);
+    final cameraDevices = devices.where((d) => d.category == DeviceCategory.camera);
+    // Use the best detected camera confidence; fall back to medium for declared-only cameras
+    final cameraConfidence = cameraDevices.isEmpty
+        ? ConfidenceScore.medium
+        : cameraDevices.fold<ConfidenceScore>(
+            cameraDevices.first.confidence, (best, d) =>
+                d.confidence.index > best.index ? d.confidence : best);
     return profile.mbpsForConfidence(cameraConfidence) * totalCameras;
   }
 
