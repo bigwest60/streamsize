@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streamsize_core/streamsize_core.dart';
 import 'package:streamsize_platform_discovery/streamsize_platform_discovery.dart';
@@ -55,14 +57,60 @@ void main() {
   });
 
   group('MDNSDiscoveryService.discoverVisibleDevices', () {
-    test('returns DiscoveryResult with platformSupportsScan field', () async {
+    test('returns empty devices with platformSupportsScan=false when channel throws MissingPluginException', () async {
+      // Simulate a non-macOS platform where the native plugin is absent
+      // by setting a mock handler that always throws MissingPluginException.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.streamsize/mdns'),
+        (MethodCall methodCall) async {
+          throw MissingPluginException('no plugin');
+        },
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('com.streamsize/mdns'),
+          null,
+        );
+      });
+
       final sut = MDNSDiscoveryService();
       final result = await sut.discoverVisibleDevices();
-      expect(result, isA<DiscoveryResult>());
-      expect(result.platformSupportsScan, isA<bool>());
-      expect(result.devices, isA<List<DetectedDevice>>());
-      // On macOS (CI runner), platformSupportsScan should be true;
-      // on other platforms, it should be false.
+      expect(result.platformSupportsScan, isFalse);
+      expect(result.devices, isEmpty);
+    });
+
+    test('returns discovered devices with platformSupportsScan=true when channel responds', () async {
+      // Simulate macOS where the plugin returns device names.
+      // The test binding defaults to android, so override to macOS.
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.streamsize/mdns'),
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'discoverServices') {
+            return ['AppleTV._airplay._tcp', 'HomePod._raop._tcp'];
+          }
+          return null;
+        },
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('com.streamsize/mdns'),
+          null,
+        );
+      });
+
+      final sut = MDNSDiscoveryService();
+      final result = await sut.discoverVisibleDevices();
+      expect(result.platformSupportsScan, isTrue);
+      expect(result.devices.length, 2);
+      expect(result.devices[0].category, DeviceCategory.tv);
+      expect(result.devices[1].category, DeviceCategory.smartHome);
     });
 
     test('isPlatformSupported returns bool', () {

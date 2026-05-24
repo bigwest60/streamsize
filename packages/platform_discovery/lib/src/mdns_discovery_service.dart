@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:streamsize_core/streamsize_core.dart';
@@ -11,7 +9,7 @@ class MDNSDiscoveryService implements DiscoveryService {
   /// Whether the current platform supports native mDNS scanning.
   /// Only macOS has the Swift plugin; Windows and Linux fall back gracefully.
   static bool get isPlatformSupported =>
-      !kIsWeb && Platform.isMacOS;
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
 
   @override
   Future<DiscoveryResult> discoverVisibleDevices() async {
