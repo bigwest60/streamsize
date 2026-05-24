@@ -159,7 +159,8 @@ class RecommendationEngine {
         ? counts[DeviceCategory.camera]!
         : scenario.securityCameraCount;
     return [
-      '${scenario.simultaneous4kStreams} simultaneous 4K stream${scenario.simultaneous4kStreams != 1 ? "s" : ""} (25 Mbps each)',
+      if (scenario.simultaneous4kStreams > 0)
+        '${scenario.simultaneous4kStreams} simultaneous 4K stream${scenario.simultaneous4kStreams != 1 ? "s" : ""} (25 Mbps each)',
       if (scenario.simultaneousHdStreams > 0)
         '${scenario.simultaneousHdStreams} simultaneous HD stream${scenario.simultaneousHdStreams != 1 ? "s" : ""} (8 Mbps each)',
       if (scenario.simultaneousVideoCalls > 0)
