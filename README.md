@@ -66,9 +66,9 @@ Streamsize is intended to give users a clearer and more honest recommendation.
 - improve the recommendation model and confidence scoring
 - make results easier to share/export
 - improve accessibility and platform polish
+- native mDNS scanning for Windows and Linux (currently macOS-only)
 
 ### Later
-- Windows and Linux polish
 - Android support
 - iOS support with platform-appropriate limitations
 - optional router or helper integrations for better accuracy
@@ -89,15 +89,13 @@ packages/platform_discovery/   Discovery abstraction and current mock implementa
 
 ## Platform support
 
-Current support should be described publicly as:
-
-- macOS: best current development target
-- Windows: scaffolded, planned
-- Linux: scaffolded, planned
-- iOS: planned
-- Android: planned
-
-If you publish this repo now, I recommend saying:
+| Platform | Status | Notes |
+| -------- | ------ | ----- |
+| macOS | Best supported | Native mDNS device scanning via Swift plugin |
+| Windows | Usable | No auto-scan; add devices manually for accurate results |
+| Linux | Usable | No auto-scan; add devices manually for accurate results |
+| iOS | Planned | Not yet ready |
+| Android | Planned | Not yet ready |
 
 > Streamsize is currently desktop-first, with mobile support planned as the product matures.
 
@@ -138,13 +136,23 @@ Then run on the target you want:
 
 ```bash
 cd apps/client_flutter
-flutter run -d <device-id>
+
+# macOS (recommended — includes automatic device scanning)
+flutter run -d macos
+
+# Windows
+flutter run -d windows
+
+# Linux
+flutter run -d linux
 ```
 
-Examples:
-- `flutter run -d macos`
-- `flutter run -d windows`
-- `flutter run -d linux`
+### Windows and Linux notes
+
+- The app runs fully on Windows and Linux, but **automatic network device scanning** is currently macOS-only (it uses a native Swift mDNS plugin). On Windows and Linux, the scan step shows a clear prompt to add devices manually — the recommendation is still accurate.
+- The Linux window title and app ID have been set to **Streamsize** / `com.streamsize.streamsize`.
+- The Windows window title has been set to **Streamsize**.
+- Window background colors match the app's warm theme on all three platforms.
 
 ## iPhone/iPad note
 

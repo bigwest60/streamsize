@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:streamsize_core/streamsize_core.dart';
@@ -6,8 +8,20 @@ import 'discovery_service.dart';
 class MDNSDiscoveryService implements DiscoveryService {
   static const _channel = MethodChannel('com.streamsize/mdns');
 
+  /// Whether the current platform supports native mDNS scanning.
+  /// Only macOS has the Swift plugin; Windows and Linux fall back gracefully.
+  static bool get isPlatformSupported =>
+      !kIsWeb && Platform.isMacOS;
+
   @override
-  Future<List<DetectedDevice>> discoverVisibleDevices() async {
+  Future<DiscoveryResult> discoverVisibleDevices() async {
+    if (!isPlatformSupported) {
+      return const DiscoveryResult(
+        devices: [],
+        platformSupportsScan: false,
+      );
+    }
+
     try {
       // .timeout(10s) is a dead-man switch (crash guard), not scan duration
       // control. Swift asyncAfter(5s) always resolves first under normal
@@ -15,10 +29,16 @@ class MDNSDiscoveryService implements DiscoveryService {
       final names = await _channel
           .invokeListMethod<String>('discoverServices')
           .timeout(const Duration(seconds: 10), onTimeout: () => []) ?? [];
-      return names.map(_parseServiceName).toList();
+      return DiscoveryResult(
+        devices: names.map(_parseServiceName).toList(),
+        platformSupportsScan: true,
+      );
     } on MissingPluginException {
-      // On non-macOS platforms (Windows, Linux) or in tests without the plugin.
-      return [];
+      // Plugin not registered (e.g. running in tests).
+      return const DiscoveryResult(
+        devices: [],
+        platformSupportsScan: false,
+      );
     }
   }
 

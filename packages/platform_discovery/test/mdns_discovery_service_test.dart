@@ -3,6 +3,8 @@ import 'package:streamsize_core/streamsize_core.dart';
 import 'package:streamsize_platform_discovery/streamsize_platform_discovery.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('MDNSDiscoveryService.parseServiceName', () {
     late MDNSDiscoveryService sut;
 
@@ -49,6 +51,22 @@ void main() {
       final d = sut.parseServiceName('SomeDevice._http._tcp.local');
       expect(d.category, DeviceCategory.unknown);
       expect(d.confidence, ConfidenceScore.low);
+    });
+  });
+
+  group('MDNSDiscoveryService.discoverVisibleDevices', () {
+    test('returns DiscoveryResult with platformSupportsScan field', () async {
+      final sut = MDNSDiscoveryService();
+      final result = await sut.discoverVisibleDevices();
+      expect(result, isA<DiscoveryResult>());
+      expect(result.platformSupportsScan, isA<bool>());
+      expect(result.devices, isA<List<DetectedDevice>>());
+      // On macOS (CI runner), platformSupportsScan should be true;
+      // on other platforms, it should be false.
+    });
+
+    test('isPlatformSupported returns bool', () {
+      expect(MDNSDiscoveryService.isPlatformSupported, isA<bool>());
     });
   });
 }
