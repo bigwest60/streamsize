@@ -82,6 +82,7 @@ class _AddDeviceSheetState extends State<_AddDeviceSheet> {
               hintText: 'e.g. Office NAS, Kids iPad',
             ),
             textCapitalization: TextCapitalization.words,
+            autofocus: true,
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<DeviceCategory>(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -32,6 +33,7 @@ class StreamsizeApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Streamsize',
+      debugShowCheckedModeBanner: false,
       theme: baseTheme.copyWith(
         textTheme: baseTheme.textTheme.apply(bodyColor: const Color(0xFF2D2433)),
         cardTheme: const CardThemeData(
@@ -117,6 +119,17 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
       _platformSupportsScan = result.platformSupportsScan;
       _isScanning = false;
       _scenario = _scenario.copyWith(devices: _allDevices);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!WidgetsBinding.instance.semanticsEnabled) return;
+      // ignore: deprecated_member_use
+      SemanticsService.announce(
+        result.devices.isEmpty
+            ? 'Network scan complete. No devices found. You can add devices manually.'
+            : 'Network scan complete. ${result.devices.length} device${result.devices.length == 1 ? '' : 's'} found.',
+        Directionality.of(context),
+      );
     });
   }
 
@@ -386,8 +399,8 @@ class _IntroPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Tooltip(
-            message: 'Streamsize helps you find the right internet plan for your home.',
+          Semantics(
+            label: 'Streamsize guide: helps you find the right internet plan for your home.',
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
@@ -404,10 +417,11 @@ class _IntroPanel extends StatelessWidget {
               fontWeight: FontWeight.w700,
               height: 1.05,
             ),
+            semanticsLabel: 'Streamsize: find the internet plan your home actually needs.',
           ),
           const SizedBox(height: 12),
           Text(
-            'A calmer way to choose home internet: check a few visible devices, describe the busiest moments, and get a recommendation you can trust.',
+            'Answer three quick questions — check your devices, describe peak usage, and get a recommendation sized to your household.',
             style: theme.textTheme.titleMedium?.copyWith(height: 1.45),
           ),
           const SizedBox(height: 30),
@@ -449,28 +463,34 @@ class _IntroPanel extends StatelessWidget {
             _stepTitles.length,
             (index) => Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: index <= stepIndex ? const Color(0xFFE07A5F) : Colors.white,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        color: index <= stepIndex ? Colors.white : const Color(0xFF7B7280),
-                        fontWeight: FontWeight.w700,
+              child: Semantics(
+                label: 'Step ${index + 1}: ${_stepTitles[index]}${index < stepIndex ? ' (completed)' : index == stepIndex ? ' (current)' : ''}',
+                container: true,
+                child: ExcludeSemantics(
+                  child: Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: index <= stepIndex ? const Color(0xFFE07A5F) : Colors.white,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: index <= stepIndex ? Colors.white : const Color(0xFF5C5468),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Text(_stepTitles[index], style: theme.textTheme.titleMedium),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Text(_stepTitles[index], style: theme.textTheme.titleMedium),
-                ],
+                ),
               ),
             ),
           ),
@@ -486,7 +506,7 @@ class _IntroPanel extends StatelessWidget {
               children: [
                 const Text(
                   'A gentle nudge',
-                  style: TextStyle(color: Color(0xFFEBDCF4)),
+                  style: TextStyle(color: Color(0xFFF0E0F8)),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -500,7 +520,7 @@ class _IntroPanel extends StatelessWidget {
                 Text(
                   'We will show you what is truly necessary and what is just sales pressure.',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: const Color(0xFFEBDCF4),
+                    color: const Color(0xFFF0E0F8),
                     height: 1.45,
                   ),
                 ),
@@ -553,23 +573,41 @@ class _FlowCard extends StatelessWidget {
           Row(
             children: [
               if (onBack != null)
-                OutlinedButton(
-                  onPressed: onBack,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: const Text('Back'),
-                ),
+                Builder(builder: (context) {
+                  final backLabel = 'Back to step $stepIndex of 4';
+                  return Tooltip(
+                    message: backLabel,
+                    child: OutlinedButton(
+                      onPressed: onBack,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Semantics(
+                        label: backLabel,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  );
+                }),
               const Spacer(),
-              FilledButton(
-                onPressed: onNext,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text(isLast ? 'Start over' : 'Continue'),
-              ),
+              Builder(builder: (context) {
+                final nextLabel = isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4';
+                return Tooltip(
+                  message: nextLabel,
+                  child: FilledButton(
+                    onPressed: onNext,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Semantics(
+                      label: nextLabel,
+                      child: Text(isLast ? 'Start over' : 'Continue'),
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ],
@@ -593,7 +631,7 @@ class _WelcomeStep extends StatelessWidget {
         Text('A simpler way to size your internet', style: theme.textTheme.headlineSmall),
         const SizedBox(height: 12),
         Text(
-          'We combine visible devices with a few easy questions about peak-time habits, then recommend a plan that feels fast without overbuying.',
+          'We will walk you through three quick steps: check what is on your network, tell us about your busiest moments, and get a plain-English recommendation.',
           style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
         ),
         const SizedBox(height: 26),
@@ -608,55 +646,67 @@ class _WelcomeStep extends StatelessWidget {
         ),
         if (isScanning) ...[
           const SizedBox(height: 20),
-          Row(
-            children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+          Semantics(
+            label: 'Scanning your network for devices. Please wait.',
+            container: true,
+            child: ExcludeSemantics(
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 10),
+                  Text('Scanning your network...', style: theme.textTheme.bodyMedium),
+                ],
               ),
-              const SizedBox(width: 10),
-              Text('Scanning your network...', style: theme.textTheme.bodyMedium),
-            ],
+            ),
           ),
         ],
         const SizedBox(height: 28),
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFF7F0), Color(0xFFF5EDE4)],
+        Semantics(
+          label: 'You are close to an answer. Right now tracking toward ${recommendation.planLabel}.',
+          container: true,
+          child: ExcludeSemantics(
+            child: Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFF7F0), Color(0xFFF5EDE4)],
+              ),
+              borderRadius: BorderRadius.circular(24),
             ),
-            borderRadius: BorderRadius.circular(24),
+            child: Row(
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE07A5F),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.wifi_tethering_rounded, color: Colors.white),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('You are already close to an answer', style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Right now, your sample household is tracking toward ${recommendation.planLabel}. Tap Continue to refine that over the next few screens.',
+                        style: theme.textTheme.bodyLarge?.copyWith(height: 1.45),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 58,
-                height: 58,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE07A5F),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.wifi_tethering_rounded, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('You are already close to an answer', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Right now, your sample household is tracking toward ${recommendation.planLabel}. We will refine that over the next few screens.',
-                      style: theme.textTheme.bodyLarge?.copyWith(height: 1.45),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -696,31 +746,39 @@ class _DevicesStep extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         if (devices.isEmpty && !isScanning) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF7F0),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFF0E3D8)),
+          Semantics(
+            label: platformSupportsScan
+                ? 'No devices detected. The scan finished but found nothing. Add your devices manually below.'
+                : 'Network scan not available. Automatic scanning is only on macOS. Add your devices manually below.',
+            container: true,
+            child: ExcludeSemantics(
+              child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7F0),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFF0E3D8)),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.wifi_find_rounded, size: 40, color: Color(0xFFE07A5F)),
+                  const SizedBox(height: 12),
+                  Text(
+                    platformSupportsScan ? 'No devices detected' : 'Network scan not available',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    platformSupportsScan
+                        ? 'The scan finished but found nothing. This can happen on networks with mDNS isolation. Tap "Add a device manually" below to list your devices — the recommendation will still be accurate.'
+                        : 'Automatic network scanning is available on macOS only. Tap "Add a device manually" below to list your devices — the recommendation will still be accurate.',
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                const Icon(Icons.wifi_find_rounded, size: 40, color: Color(0xFFE07A5F)),
-                const SizedBox(height: 12),
-                Text(
-                  platformSupportsScan ? 'No devices detected' : 'Network scan not available',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  platformSupportsScan
-                      ? 'The scan finished but found nothing. This happens on some routers with mDNS isolation. Add your devices manually below — the recommendation will still be accurate.'
-                      : 'Automatic network scanning is only available on macOS right now. Add your devices manually below — the recommendation will still be accurate.',
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -786,11 +844,20 @@ class _DevicesStep extends StatelessWidget {
           ),
         ],
         // "Add manually" text link — macOS-native feel; FABs are mobile-native.
-        TextButton.icon(
-          onPressed: onAddDeviceManually,
-          icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-          label: const Text('Add a device manually'),
-        ),
+        Builder(builder: (context) {
+          const addLabel = 'Add a device that the scan may have missed';
+          return Tooltip(
+            message: addLabel,
+            child: TextButton.icon(
+              onPressed: onAddDeviceManually,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+              label: Semantics(
+                label: addLabel,
+                child: const Text('Add a device manually'),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -959,13 +1026,19 @@ class _ResultsStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text('Your right-sized plan', style: theme.textTheme.headlineSmall),
+        Semantics(
+          label: 'Your right-sized plan: ${recommendation.downloadMbps} Mbps download, ${recommendation.uploadMbps} Mbps upload. ${recommendation.planLabel}.',
+          container: true,
+          child: ExcludeSemantics(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text('Your right-sized plan', style: theme.textTheme.headlineSmall),
+                ),
+                _RecommendationConfidenceBadge(confidence: recommendation.confidence),
+              ],
             ),
-            _RecommendationConfidenceBadge(confidence: recommendation.confidence),
-          ],
+          ),
         ),
         if (recommendation.confidence == ConfidenceScore.low) ...[
           const SizedBox(height: 8),
@@ -1029,7 +1102,7 @@ class _ResultsStep extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Text(
                       'Mbps',
-                      style: theme.textTheme.headlineSmall?.copyWith(color: const Color(0xFFEBDCF4)),
+                      style: theme.textTheme.headlineSmall?.copyWith(color: const Color(0xFFF0E0F8)),
                     ),
                   ),
                 ],
@@ -1045,7 +1118,7 @@ class _ResultsStep extends StatelessWidget {
                     ? 'This should comfortably cover ${scenario.simultaneous4kStreams} 4K streams, ${scenario.simultaneousVideoCalls} live calls, and everyday browsing without paying for a premium tier you are unlikely to feel.'
                     : 'Your peak-time habits suggest a faster tier is justified so the busiest moments still feel smooth.',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFFEBDCF4),
+                  color: const Color(0xFFF0E0F8),
                   height: 1.5,
                 ),
               ),
@@ -1055,7 +1128,13 @@ class _ResultsStep extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   _DarkStatPill(label: 'Upload ${recommendation.uploadMbps} Mbps'),
-                  _DarkStatPill(label: 'Confidence ${recommendation.confidence.name}'),
+                  Semantics(
+                    label: 'Confidence: ${recommendation.confidence.name}',
+                    container: true,
+                    child: ExcludeSemantics(
+                      child: _DarkStatPill(label: 'Confidence ${recommendation.confidence.name}'),
+                    ),
+                  ),
                   _DarkStatPill(label: '${scenario.devices.length} devices considered'),
                 ],
               ),
@@ -1066,7 +1145,7 @@ class _ResultsStep extends StatelessWidget {
         // Speed test section
         _SpotlightCard(
           title: 'Compare with your actual speed',
-          subtitle: 'Optional: run a quick test to see how your current plan compares to our recommendation.',
+          subtitle: 'Optional — run a quick test to see how your current plan compares to our recommendation.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1187,18 +1266,24 @@ class _RecommendationConfidenceBadge extends StatelessWidget {
       ConfidenceScore.low => ('Rough estimate', const Color(0xFFC26A5A)),
     };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+    return Semantics(
+      label: 'Recommendation confidence: $label',
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
       ),
     );
   }
@@ -1278,27 +1363,33 @@ class _ProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Step ${stepIndex + 1} of 4', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 12),
-        Row(
-          children: List.generate(
-            4,
-            (index) => Expanded(
-              child: Container(
-                margin: EdgeInsets.only(right: index == 3 ? 0 : 10),
-                height: 8,
-                decoration: BoxDecoration(
-                  color: index <= stepIndex ? const Color(0xFFE07A5F) : const Color(0xFFEFE4D7),
-                  borderRadius: BorderRadius.circular(999),
+    return Semantics(
+      label: 'Step ${stepIndex + 1} of 4',
+      container: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Text('Step ${stepIndex + 1} of 4', style: Theme.of(context).textTheme.labelLarge),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(
+              4,
+              (index) => Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(right: index == 3 ? 0 : 10),
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: index <= stepIndex ? const Color(0xFFE07A5F) : const Color(0xFFEFE4D7),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1317,21 +1408,27 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: const Color(0xFFE07A5F)),
-          const SizedBox(height: 12),
-          Text(label, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 4),
-          Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-        ],
+    return Semantics(
+      label: '$label: $value',
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: const Color(0xFFE07A5F)),
+              const SizedBox(height: 12),
+              Text(label, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 4),
+              Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1350,70 +1447,74 @@ class _DeviceInsightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBF8),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF0E3D8)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _CategoryIcon(category: device.category, large: true),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(device.displayName, style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(_deviceNarrative(device), style: theme.textTheme.bodyMedium?.copyWith(height: 1.4)),
-                  ],
-                ),
-              ),
-              _ConfidenceBadge(confidence: device.confidence),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _MiniInfoPill(icon: Icons.wifi_rounded, label: device.connection.label),
-              _MiniInfoPill(icon: Icons.category_rounded, label: device.category.label),
-              _MiniInfoPill(icon: Icons.insights_rounded, label: _confidenceCopy(device.confidence)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<DeviceCategory>(
-            initialValue: device.category,
-            decoration: const InputDecoration(labelText: 'Looks more like'),
-            items: DeviceCategory.values
-                .map(
-                  (category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category.label),
+    return Semantics(
+      label: '${device.displayName}, ${device.category.label}, ${device.connection.label}, ${_confidenceCopy(device.confidence)}',
+      container: true,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBF8),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF0E3D8)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _CategoryIcon(category: device.category, large: true),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(device.displayName, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(_deviceNarrative(device), style: theme.textTheme.bodyMedium?.copyWith(height: 1.4)),
+                    ],
                   ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
-                onCategoryChanged(value);
-              }
-            },
-          ),
-        ],
+                ),
+                _ConfidenceBadge(confidence: device.confidence),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _MiniInfoPill(icon: Icons.wifi_rounded, label: device.connection.label),
+                _MiniInfoPill(icon: Icons.category_rounded, label: device.category.label),
+                _MiniInfoPill(icon: Icons.insights_rounded, label: _confidenceCopy(device.confidence)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<DeviceCategory>(
+              initialValue: device.category,
+              decoration: const InputDecoration(labelText: 'Looks more like'),
+              items: DeviceCategory.values
+                  .map(
+                    (category) => DropdownMenuItem(
+                      value: category,
+                      child: Text(category.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  onCategoryChanged(value);
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1432,18 +1533,24 @@ class _ConfidenceBadge extends StatelessWidget {
       ConfidenceScore.low => const Color(0xFFC26A5A),
     };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        confidence.name,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+    return Semantics(
+      label: 'Confidence: ${confidence.name}',
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            confidence.name,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
       ),
     );
   }
@@ -1579,20 +1686,26 @@ class _FeatureChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 14,
-            offset: Offset(0, 4),
+    return Semantics(
+      label: label,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0F000000),
+                blurRadius: 14,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        ],
+          child: Text(label),
+        ),
       ),
-      child: Text(label),
     );
   }
 }
@@ -1634,65 +1747,83 @@ class _QuestionCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBF8),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF0E3D8)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(helper, style: theme.textTheme.bodyMedium?.copyWith(height: 1.45)),
-              ],
+    return Semantics(
+      label: '$label: $value. $helper',
+      container: true,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBF8),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF0E3D8)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(helper, style: theme.textTheme.bodyMedium?.copyWith(height: 1.45)),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          _CounterButton(
-            icon: Icons.remove_rounded,
-            onPressed: value == 0 ? null : () => onChanged(value - 1),
-          ),
-          SizedBox(
-            width: 44,
-            child: Center(child: Text('$value', style: theme.textTheme.titleMedium)),
-          ),
-          _CounterButton(
-            icon: Icons.add_rounded,
-            onPressed: () => onChanged(value + 1),
-          ),
-        ],
+            const SizedBox(width: 16),
+            _CounterButton(
+              icon: Icons.remove_rounded,
+              onPressed: value == 0 ? null : () => onChanged(value - 1),
+              semanticsLabel: 'Decrease $label',
+            ),
+            ExcludeSemantics(
+              child: SizedBox(
+                width: 44,
+                child: Center(
+                  child: Text('$value', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ),
+            _CounterButton(
+              icon: Icons.add_rounded,
+              onPressed: () => onChanged(value + 1),
+              semanticsLabel: 'Increase $label',
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _CounterButton extends StatelessWidget {
-  const _CounterButton({required this.icon, this.onPressed});
+  const _CounterButton({required this.icon, this.onPressed, this.semanticsLabel});
 
   final IconData icon;
   final VoidCallback? onPressed;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null;
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: disabled ? const Color(0xFFF2E6D9) : const Color(0xFFF3E7D8),
-          borderRadius: BorderRadius.circular(16),
+    return Semantics(
+      label: semanticsLabel,
+      button: true,
+      enabled: onPressed != null,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: disabled ? const Color(0xFFF2E6D9) : const Color(0xFFF3E7D8),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: disabled ? const Color(0xFFB9A99B) : const Color(0xFFE07A5F)),
         ),
-        child: Icon(icon, color: disabled ? const Color(0xFFB9A99B) : const Color(0xFFE07A5F)),
       ),
     );
   }
