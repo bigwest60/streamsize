@@ -8,7 +8,7 @@ import 'discovery_service.dart';
 class MDNSDiscoveryService implements DiscoveryService {
   static const _channel = MethodChannel('com.streamsize/mdns');
 
-  /// Whether the current platform supports native mDNS scanning.
+  /// Whether the current platform supports mDNS scanning.
   /// macOS uses the Swift plugin; Windows and Linux use a pure-Dart fallback.
   static bool get isPlatformSupported =>
       !kIsWeb &&

@@ -46,7 +46,7 @@ class DartMDNSDiscoveryService implements DiscoveryService {
 
       final seen = <String>{};
       final List<String> serviceNames = [];
-      final subscriptions = <StreamSubscription<void>>[];
+      final subscriptions = <StreamSubscription<PtrResourceRecord>>[];
       final completer = Completer<void>();
       var pending = _serviceTypes.length;
 

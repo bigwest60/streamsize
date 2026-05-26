@@ -17,7 +17,7 @@ MDNSDiscoveryService
 ├── macOS: MethodChannel → Swift NWBrowser (unchanged)
 └── Windows/Linux: DartMDNSDiscoveryService (new, multicast_dns package)
 
-Both paths share the same _parseServiceName() classification logic.
+Both paths share the same `classifyDevice()` classification logic.
 ```
 
 ## Changes
@@ -31,7 +31,7 @@ client app wiring.
 
 ### 2. Extract shared classification logic
 
-Move `_parseServiceName` from `MDNSDiscoveryService` into a standalone function
+Move classification from `MDNSDiscoveryService` into a standalone function
 in a new file `lib/src/device_classifier.dart`. Both `MDNSDiscoveryService`
 (Swift results) and `DartMDNSDiscoveryService` (pure-Dart results) use it.
 
