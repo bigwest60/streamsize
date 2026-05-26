@@ -70,6 +70,12 @@ class DartMDNSDiscoveryService implements DiscoveryService {
                   completer.complete();
                 }
               },
+              onError: (_) {
+                pending--;
+                if (pending == 0 && !completer.isCompleted) {
+                  completer.complete();
+                }
+              },
               cancelOnError: true,
             );
         subscriptions.add(sub);
