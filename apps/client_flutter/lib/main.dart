@@ -466,7 +466,6 @@ class _IntroPanel extends StatelessWidget {
               child: Semantics(
                 label: 'Step ${index + 1}: ${_stepTitles[index]}${index < stepIndex ? ' (completed)' : index == stepIndex ? ' (current)' : ''}',
                 container: true,
-                excludeSemantics: true,
                 child: Row(
                   children: [
                     AnimatedContainer(
@@ -572,31 +571,33 @@ class _FlowCard extends StatelessWidget {
           Row(
             children: [
               if (onBack != null)
-                Semantics(
-                  label: 'Back to step $stepIndex of 4',
-                  container: true,
-                  excludeSemantics: true,
+                Tooltip(
+                  message: 'Back to step $stepIndex of 4',
                   child: OutlinedButton(
                     onPressed: onBack,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text('Back'),
+                    child: Semantics(
+                      label: 'Back to step $stepIndex of 4',
+                      child: const Text('Back'),
+                    ),
                   ),
                 ),
               const Spacer(),
-              Semantics(
-                label: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
-                container: true,
-                excludeSemantics: true,
+              Tooltip(
+                message: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
                 child: FilledButton(
                   onPressed: onNext,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: Text(isLast ? 'Start over' : 'Continue'),
+                  child: Semantics(
+                    label: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
+                    child: Text(isLast ? 'Start over' : 'Continue'),
+                  ),
                 ),
               ),
             ],
@@ -826,15 +827,15 @@ class _DevicesStep extends StatelessWidget {
           ),
         ],
         // "Add manually" text link — macOS-native feel; FABs are mobile-native.
-        Semantics(
-          label: 'Add a device that the scan may have missed',
-          button: true,
-          container: true,
-          excludeSemantics: true,
+        Tooltip(
+          message: 'Add a device that the scan may have missed',
           child: TextButton.icon(
             onPressed: onAddDeviceManually,
             icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-            label: const Text('Add a device manually'),
+            label: Semantics(
+              label: 'Add a device that the scan may have missed',
+              child: const Text('Add a device manually'),
+            ),
           ),
         ),
       ],
@@ -1336,7 +1337,6 @@ class _ProgressHeader extends StatelessWidget {
     return Semantics(
       label: 'Step ${stepIndex + 1} of 4',
       container: true,
-      excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
