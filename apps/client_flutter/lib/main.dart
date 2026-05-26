@@ -1028,13 +1028,16 @@ class _ResultsStep extends StatelessWidget {
       children: [
         Semantics(
           label: 'Your right-sized plan: ${recommendation.downloadMbps} Mbps download, ${recommendation.uploadMbps} Mbps upload. ${recommendation.planLabel}.',
-          child: Row(
-            children: [
-              Expanded(
-                child: Text('Your right-sized plan', style: theme.textTheme.headlineSmall),
-              ),
-              _RecommendationConfidenceBadge(confidence: recommendation.confidence),
-            ],
+          container: true,
+          child: ExcludeSemantics(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text('Your right-sized plan', style: theme.textTheme.headlineSmall),
+                ),
+                _RecommendationConfidenceBadge(confidence: recommendation.confidence),
+              ],
+            ),
           ),
         ),
         if (recommendation.confidence == ConfidenceScore.low) ...[
@@ -1127,7 +1130,10 @@ class _ResultsStep extends StatelessWidget {
                   _DarkStatPill(label: 'Upload ${recommendation.uploadMbps} Mbps'),
                   Semantics(
                     label: 'Confidence: ${recommendation.confidence.name}',
-                    child: _DarkStatPill(label: 'Confidence ${recommendation.confidence.name}'),
+                    container: true,
+                    child: ExcludeSemantics(
+                      child: _DarkStatPill(label: 'Confidence ${recommendation.confidence.name}'),
+                    ),
                   ),
                   _DarkStatPill(label: '${scenario.devices.length} devices considered'),
                 ],
