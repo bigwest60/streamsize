@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -39,7 +39,7 @@ class StreamsizeApp extends StatelessWidget {
         final clampedScaler = mediaQuery.textScaler.clamp(maxScaleFactor: 1.5);
         return MediaQuery(
           data: mediaQuery.copyWith(textScaler: clampedScaler),
-          child: child!,
+          child: child ?? const SizedBox.shrink(),
         );
       },
       theme: baseTheme.copyWith(
@@ -135,7 +135,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
         result.devices.isEmpty
             ? 'Network scan complete. No devices found. You can add devices manually.'
             : 'Network scan complete. ${result.devices.length} device${result.devices.length == 1 ? '' : 's'} found.',
-        TextDirection.ltr,
+        Directionality.of(context),
       );
     });
   }
@@ -471,7 +471,7 @@ class _IntroPanel extends StatelessWidget {
             (index) => Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: Semantics(
-                label: 'Step ${index + 1}: ${_stepTitles[index]}${index <= stepIndex ? ' (completed)' : ''}',
+                label: 'Step ${index + 1}: ${_stepTitles[index]}${index < stepIndex ? ' (completed)' : index == stepIndex ? ' (current)' : ''}',
                 child: Row(
                   children: [
                     AnimatedContainer(
@@ -749,7 +749,7 @@ class _DevicesStep extends StatelessWidget {
                   const Icon(Icons.wifi_find_rounded, size: 40, color: Color(0xFFE07A5F)),
                   const SizedBox(height: 12),
                   Text(
-                    platformSupportsScan ? 'No devices detected yet' : 'Network scan not available',
+                    platformSupportsScan ? 'No devices detected' : 'Network scan not available',
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
