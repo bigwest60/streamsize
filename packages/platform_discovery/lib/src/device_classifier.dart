@@ -3,7 +3,7 @@ import 'package:streamsize_core/streamsize_core.dart';
 /// Shared device-classification logic used by both [MDNSDiscoveryService]
 /// (macOS Swift plugin) and [DartMDNSDiscoveryService] (pure-Dart fallback).
 ///
-/// Parses a Bonjour service name of the form `hostname._type._tcp`
+/// Parses a Bonjour service name of the form `hostname._type._tcp[.local]`
 /// and returns a [DetectedDevice] with the appropriate category, confidence,
 /// and default Wi-Fi connection type.
 DetectedDevice classifyDevice(String serviceName) {

@@ -87,9 +87,7 @@ class DartMDNSDiscoveryService implements DiscoveryService {
         Future<void>.delayed(const Duration(seconds: 5)),
       ]);
 
-      for (final sub in subscriptions) {
-        unawaited(sub.cancel());
-      }
+      await Future.wait(subscriptions.map((sub) => sub.cancel()));
 
       return DiscoveryResult(
         devices: serviceNames.map(classifyDevice).toList(),
