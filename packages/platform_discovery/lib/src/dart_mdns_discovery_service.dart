@@ -59,7 +59,7 @@ class DartMDNSDiscoveryService implements DiscoveryService {
             )
             .listen(
               (ptr) {
-                final name = '${ptr.name}.$serviceType';
+                final name = ptr.domainName;
                 if (seen.add(name)) {
                   serviceNames.add(name);
                 }
