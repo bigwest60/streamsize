@@ -16,7 +16,7 @@ class MDNSDiscoveryService implements DiscoveryService {
        defaultTargetPlatform == TargetPlatform.windows ||
        defaultTargetPlatform == TargetPlatform.linux);
 
-  final DartMDNSDiscoveryService? _dartFallback;
+  final DartMDNSDiscoveryService _dartFallback;
 
   /// Creates an [MDNSDiscoveryService].
   ///
@@ -34,7 +34,7 @@ class MDNSDiscoveryService implements DiscoveryService {
 
     // Windows / Linux: delegate to the pure-Dart fallback.
     if (DartMDNSDiscoveryService.isPlatformSupported) {
-      return _dartFallback!.discoverVisibleDevices();
+      return _dartFallback.discoverVisibleDevices();
     }
 
     return const DiscoveryResult(devices: [], platformSupportsScan: false);

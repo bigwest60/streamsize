@@ -54,7 +54,7 @@ class DartMDNSDiscoveryService implements DiscoveryService {
       for (final serviceType in _serviceTypes) {
         final sub = client
             .lookup<PtrResourceRecord>(
-              ResourceRecordQuery.serverPointer(serviceType),
+              ResourceRecordQuery.serverPointer('$serviceType.local'),
               timeout: const Duration(seconds: 5),
             )
             .listen(
@@ -82,7 +82,7 @@ class DartMDNSDiscoveryService implements DiscoveryService {
       ]);
 
       for (final sub in subscriptions) {
-        sub.cancel();
+        unawaited(sub.cancel());
       }
 
       return DiscoveryResult(
