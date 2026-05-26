@@ -466,28 +466,30 @@ class _IntroPanel extends StatelessWidget {
               child: Semantics(
                 label: 'Step ${index + 1}: ${_stepTitles[index]}${index < stepIndex ? ' (completed)' : index == stepIndex ? ' (current)' : ''}',
                 container: true,
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: index <= stepIndex ? const Color(0xFFE07A5F) : Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: index <= stepIndex ? Colors.white : const Color(0xFF5C5468),
-                          fontWeight: FontWeight.w700,
+                child: ExcludeSemantics(
+                  child: Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: index <= stepIndex ? const Color(0xFFE07A5F) : Colors.white,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: index <= stepIndex ? Colors.white : const Color(0xFF5C5468),
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(_stepTitles[index], style: theme.textTheme.titleMedium),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(_stepTitles[index], style: theme.textTheme.titleMedium),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -571,35 +573,41 @@ class _FlowCard extends StatelessWidget {
           Row(
             children: [
               if (onBack != null)
-                Tooltip(
-                  message: 'Back to step $stepIndex of 4',
-                  child: OutlinedButton(
-                    onPressed: onBack,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                Builder(builder: (context) {
+                  final backLabel = 'Back to step $stepIndex of 4';
+                  return Tooltip(
+                    message: backLabel,
+                    child: OutlinedButton(
+                      onPressed: onBack,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Semantics(
+                        label: backLabel,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  );
+                }),
+              const Spacer(),
+              Builder(builder: (context) {
+                final nextLabel = isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4';
+                return Tooltip(
+                  message: nextLabel,
+                  child: FilledButton(
+                    onPressed: onNext,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     child: Semantics(
-                      label: 'Back to step $stepIndex of 4',
-                      child: const Text('Back'),
+                      label: nextLabel,
+                      child: Text(isLast ? 'Start over' : 'Continue'),
                     ),
                   ),
-                ),
-              const Spacer(),
-              Tooltip(
-                message: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
-                child: FilledButton(
-                  onPressed: onNext,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: Semantics(
-                    label: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
-                    child: Text(isLast ? 'Start over' : 'Continue'),
-                  ),
-                ),
-              ),
+                );
+              }),
             ],
           ),
         ],
@@ -827,17 +835,20 @@ class _DevicesStep extends StatelessWidget {
           ),
         ],
         // "Add manually" text link — macOS-native feel; FABs are mobile-native.
-        Tooltip(
-          message: 'Add a device that the scan may have missed',
-          child: TextButton.icon(
-            onPressed: onAddDeviceManually,
-            icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-            label: Semantics(
-              label: 'Add a device that the scan may have missed',
-              child: const Text('Add a device manually'),
+        Builder(builder: (context) {
+          const addLabel = 'Add a device that the scan may have missed';
+          return Tooltip(
+            message: addLabel,
+            child: TextButton.icon(
+              onPressed: onAddDeviceManually,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+              label: Semantics(
+                label: addLabel,
+                child: const Text('Add a device manually'),
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }
@@ -1340,7 +1351,9 @@ class _ProgressHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Step ${stepIndex + 1} of 4', style: Theme.of(context).textTheme.labelLarge),
+          ExcludeSemantics(
+            child: Text('Step ${stepIndex + 1} of 4', style: Theme.of(context).textTheme.labelLarge),
+          ),
           const SizedBox(height: 12),
           Row(
             children: List.generate(
