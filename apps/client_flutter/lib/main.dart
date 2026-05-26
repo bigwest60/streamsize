@@ -34,14 +34,6 @@ class StreamsizeApp extends StatelessWidget {
     return MaterialApp(
       title: 'Streamsize',
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        final mediaQuery = MediaQuery.of(context);
-        final clampedScaler = mediaQuery.textScaler.clamp(maxScaleFactor: 1.5);
-        return MediaQuery(
-          data: mediaQuery.copyWith(textScaler: clampedScaler),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
       theme: baseTheme.copyWith(
         textTheme: baseTheme.textTheme.apply(bodyColor: const Color(0xFF2D2433)),
         cardTheme: const CardThemeData(
@@ -130,6 +122,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      if (!WidgetsBinding.instance.semanticsEnabled) return;
       // ignore: deprecated_member_use
       SemanticsService.announce(
         result.devices.isEmpty
@@ -472,6 +465,8 @@ class _IntroPanel extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 14),
               child: Semantics(
                 label: 'Step ${index + 1}: ${_stepTitles[index]}${index < stepIndex ? ' (completed)' : index == stepIndex ? ' (current)' : ''}',
+                container: true,
+                excludeSemantics: true,
                 child: Row(
                   children: [
                     AnimatedContainer(
@@ -579,6 +574,8 @@ class _FlowCard extends StatelessWidget {
               if (onBack != null)
                 Semantics(
                   label: 'Back to step $stepIndex of 4',
+                  container: true,
+                  excludeSemantics: true,
                   child: OutlinedButton(
                     onPressed: onBack,
                     style: OutlinedButton.styleFrom(
@@ -591,6 +588,8 @@ class _FlowCard extends StatelessWidget {
               const Spacer(),
               Semantics(
                 label: isLast ? 'Start over from the beginning' : 'Continue to step ${stepIndex + 2} of 4',
+                container: true,
+                excludeSemantics: true,
                 child: FilledButton(
                   onPressed: onNext,
                   style: FilledButton.styleFrom(
@@ -830,6 +829,8 @@ class _DevicesStep extends StatelessWidget {
         Semantics(
           label: 'Add a device that the scan may have missed',
           button: true,
+          container: true,
+          excludeSemantics: true,
           child: TextButton.icon(
             onPressed: onAddDeviceManually,
             icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
@@ -1334,6 +1335,8 @@ class _ProgressHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Step ${stepIndex + 1} of 4',
+      container: true,
+      excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1385,7 +1388,7 @@ class _MetricTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: const Color(0xFFE07A5F), semanticLabel: label),
+            Icon(icon, color: const Color(0xFFE07A5F)),
             const SizedBox(height: 12),
             Text(label, style: theme.textTheme.bodyMedium),
             const SizedBox(height: 4),
