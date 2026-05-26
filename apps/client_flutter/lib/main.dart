@@ -648,23 +648,28 @@ class _WelcomeStep extends StatelessWidget {
           const SizedBox(height: 20),
           Semantics(
             label: 'Scanning your network for devices. Please wait.',
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 10),
-                Text('Scanning your network...', style: theme.textTheme.bodyMedium),
-              ],
+            container: true,
+            child: ExcludeSemantics(
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 10),
+                  Text('Scanning your network...', style: theme.textTheme.bodyMedium),
+                ],
+              ),
             ),
           ),
         ],
         const SizedBox(height: 28),
         Semantics(
           label: 'You are close to an answer. Right now tracking toward ${recommendation.planLabel}.',
-          child: Container(
+          container: true,
+          child: ExcludeSemantics(
+            child: Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -701,6 +706,7 @@ class _WelcomeStep extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ],
@@ -744,7 +750,9 @@ class _DevicesStep extends StatelessWidget {
             label: platformSupportsScan
                 ? 'No devices detected. The scan finished but found nothing. Add your devices manually below.'
                 : 'Network scan not available. Automatic scanning is only on macOS. Add your devices manually below.',
-            child: Container(
+            container: true,
+            child: ExcludeSemantics(
+              child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
@@ -770,6 +778,7 @@ class _DevicesStep extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
             ),
           ),
           const SizedBox(height: 16),
@@ -1253,18 +1262,21 @@ class _RecommendationConfidenceBadge extends StatelessWidget {
 
     return Semantics(
       label: 'Recommendation confidence: $label',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
         ),
       ),
     );
@@ -1392,21 +1404,24 @@ class _MetricTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Semantics(
       label: '$label: $value',
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: const Color(0xFFE07A5F)),
-            const SizedBox(height: 12),
-            Text(label, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 4),
-            Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-          ],
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: const Color(0xFFE07A5F)),
+              const SizedBox(height: 12),
+              Text(label, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 4),
+              Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
         ),
       ),
     );
@@ -1428,6 +1443,7 @@ class _DeviceInsightCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Semantics(
       label: '${device.displayName}, ${device.category.label}, ${device.connection.label}, ${_confidenceCopy(device.confidence)}',
+      container: true,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(18),
@@ -1513,18 +1529,21 @@ class _ConfidenceBadge extends StatelessWidget {
 
     return Semantics(
       label: 'Confidence: ${confidence.name}',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          confidence.name,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            confidence.name,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
         ),
       ),
     );
@@ -1663,20 +1682,23 @@ class _FeatureChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: label,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0F000000),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0F000000),
+                blurRadius: 14,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Text(label),
         ),
-        child: Text(label),
       ),
     );
   }
@@ -1721,6 +1743,7 @@ class _QuestionCounter extends StatelessWidget {
     final theme = Theme.of(context);
     return Semantics(
       label: '$label: $value. $helper',
+      container: true,
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(18),
@@ -1732,13 +1755,15 @@ class _QuestionCounter extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text(helper, style: theme.textTheme.bodyMedium?.copyWith(height: 1.45)),
-                ],
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(helper, style: theme.textTheme.bodyMedium?.copyWith(height: 1.45)),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -1747,10 +1772,12 @@ class _QuestionCounter extends StatelessWidget {
               onPressed: value == 0 ? null : () => onChanged(value - 1),
               semanticsLabel: 'Decrease $label',
             ),
-            SizedBox(
-              width: 44,
-              child: Center(
-                child: Text('$value', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            ExcludeSemantics(
+              child: SizedBox(
+                width: 44,
+                child: Center(
+                  child: Text('$value', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                ),
               ),
             ),
             _CounterButton(
