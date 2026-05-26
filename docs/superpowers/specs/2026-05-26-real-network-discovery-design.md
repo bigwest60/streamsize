@@ -27,7 +27,7 @@ client app wiring.
 
 ### 1. Add `multicast_dns` dependency
 
-`packages/platform_discovery/pubspec.yaml` — add `multicast_dns: ^0.11.0`
+`packages/platform_discovery/pubspec.yaml` — add `multicast_dns: ^0.3.3`
 
 ### 2. Extract shared classification logic
 

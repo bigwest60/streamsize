@@ -130,5 +130,90 @@ void main() {
     test('isPlatformSupported returns bool', () {
       expect(MDNSDiscoveryService.isPlatformSupported, isA<bool>());
     });
+
+    test('delegates to Dart fallback on Windows without touching MethodChannel', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      var channelInvoked = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.streamsize/mdns'),
+        (MethodCall methodCall) async {
+          channelInvoked = true;
+          return null;
+        },
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('com.streamsize/mdns'),
+          null,
+        );
+      });
+
+      // Inject a fake Dart fallback that returns a known device.
+      final fakeFallback = _FakeDartMDNSDiscoveryService();
+
+      final sut = MDNSDiscoveryService(dartFallback: fakeFallback);
+      final result = await sut.discoverVisibleDevices();
+
+      // The MethodChannel should NOT have been invoked.
+      expect(channelInvoked, isFalse);
+      // The fake fallback's result should be returned.
+      expect(result.platformSupportsScan, isTrue);
+      expect(result.devices.length, 1);
+      expect(result.devices.first.displayName, 'fake-device');
+    });
+
+    test('delegates to Dart fallback on Linux without touching MethodChannel', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      var channelInvoked = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.streamsize/mdns'),
+        (MethodCall methodCall) async {
+          channelInvoked = true;
+          return null;
+        },
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('com.streamsize/mdns'),
+          null,
+        );
+      });
+
+      final fakeFallback = _FakeDartMDNSDiscoveryService();
+
+      final sut = MDNSDiscoveryService(dartFallback: fakeFallback);
+      final result = await sut.discoverVisibleDevices();
+
+      expect(channelInvoked, isFalse);
+      expect(result.platformSupportsScan, isTrue);
+      expect(result.devices.length, 1);
+      expect(result.devices.first.displayName, 'fake-device');
+    });
   });
+}
+
+/// A fake [DartMDNSDiscoveryService] that returns a known device.
+class _FakeDartMDNSDiscoveryService extends DartMDNSDiscoveryService {
+  @override
+  Future<DiscoveryResult> discoverVisibleDevices() async {
+    return DiscoveryResult(
+      devices: [
+        const DetectedDevice(
+          displayName: 'fake-device',
+          category: DeviceCategory.tv,
+          confidence: ConfidenceScore.high,
+          connection: ConnectionType.wifi,
+        ),
+      ],
+      platformSupportsScan: true,
+    );
+  }
 }

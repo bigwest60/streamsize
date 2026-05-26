@@ -46,31 +46,56 @@ class DartMDNSDiscoveryService implements DiscoveryService {
 
       final seen = <String>{};
       final List<String> serviceNames = [];
+      final subscriptions = <StreamSubscription<void>>[];
+      final completer = Completer<void>();
+      var pending = _serviceTypes.length;
 
+      // Run all service-type lookups concurrently.
       for (final serviceType in _serviceTypes) {
-        try {
-          await for (final ptr in client.lookup<PtrResourceRecord>(
-            ResourceRecordQuery.serverPointer(serviceType),
-            timeout: const Duration(seconds: 5),
-          )) {
-            final name = '${ptr.name}.$serviceType';
-            if (seen.add(name)) {
-              serviceNames.add(name);
-            }
-          }
-        } on TimeoutException {
-          // Expected: scan window closed.
-        }
+        final sub = client
+            .lookup<PtrResourceRecord>(
+              ResourceRecordQuery.serverPointer(serviceType),
+              timeout: const Duration(seconds: 5),
+            )
+            .listen(
+              (ptr) {
+                final name = '${ptr.name}.$serviceType';
+                if (seen.add(name)) {
+                  serviceNames.add(name);
+                }
+              },
+              onDone: () {
+                pending--;
+                if (pending == 0 && !completer.isCompleted) {
+                  completer.complete();
+                }
+              },
+              cancelOnError: true,
+            );
+        subscriptions.add(sub);
       }
 
-      client.stop();
+      // Wait for all lookups to complete, or 5s overall deadline.
+      await Future.any([
+        completer.future,
+        Future<void>.delayed(const Duration(seconds: 5)),
+      ]);
+
+      for (final sub in subscriptions) {
+        sub.cancel();
+      }
 
       return DiscoveryResult(
         devices: serviceNames.map(classifyDevice).toList(),
         platformSupportsScan: true,
       );
     } catch (_) {
-      return const DiscoveryResult(devices: [], platformSupportsScan: false);
+      // Platform supports scan but the operation failed at runtime.
+      // Return empty devices with platformSupportsScan=true so the UI
+      // shows "no devices found" rather than "scan not available".
+      return const DiscoveryResult(devices: [], platformSupportsScan: true);
+    } finally {
+      client.stop();
     }
   }
 }
