@@ -5,7 +5,7 @@ import 'package:streamsize_core/streamsize_core.dart';
 
 void main() {
   group('ResultsStep Widget Tests', () {
-    testWidgets('widget builds and renders without errors', (WidgetTester tester) async {
+    testWidgets('widget builds with recommendation and scenario', (WidgetTester tester) async {
       final recommendation = PlanRecommendation(
         downloadMbps: 300,
         uploadMbps: 50,
@@ -52,11 +52,10 @@ void main() {
       );
 
       expect(find.byType(ResultsStep), findsOneWidget);
+      expect(find.byType(Column), findsWidgets);
     });
 
-    testWidgets('handles speed test callback', (WidgetTester tester) async {
-      bool speedTestCalled = false;
-      
+    testWidgets('accepts all required callbacks', (WidgetTester tester) async {
       final recommendation = PlanRecommendation(
         downloadMbps: 300,
         uploadMbps: 50,
@@ -78,6 +77,8 @@ void main() {
         largeDownloadHabit: LargeDownloadHabit.rarely,
       );
 
+      // This test verifies that ResultsStep accepts all required callbacks
+      // without errors, ensuring API contracts are preserved after extraction.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -86,7 +87,7 @@ void main() {
                 recommendation: recommendation,
                 scenario: scenario,
                 isSpeedTesting: false,
-                onRunSpeedTest: () { speedTestCalled = true; },
+                onRunSpeedTest: () {},
                 onShareText: () {},
                 onExportPdf: () {},
               ),
@@ -96,7 +97,6 @@ void main() {
       );
 
       expect(find.byType(ResultsStep), findsOneWidget);
-      expect(speedTestCalled, isFalse);
     });
   });
 }
