@@ -3,6 +3,7 @@ import 'package:streamsize_core/streamsize_core.dart';
 
 class ResultsStep extends StatelessWidget {
   const ResultsStep({
+    super.key,
     required this.recommendation,
     required this.scenario,
     required this.isSpeedTesting,
@@ -338,6 +339,7 @@ class _SpeedComparisonRow extends StatelessWidget {
 
 class SpotlightCard extends StatelessWidget {
   const SpotlightCard({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.child,
