@@ -13,6 +13,7 @@ import 'services/export_service.dart';
 import 'services/speed_test_service.dart';
 import 'widgets/add_device_modal.dart';
 import 'widgets/results_step.dart';
+import 'widgets/spotlight_card.dart';
 
 void main() {
   runApp(const StreamsizeApp());
