@@ -922,7 +922,7 @@ class _UsageStep extends StatelessWidget {
           style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
         ),
         const SizedBox(height: 24),
-        _SpotlightCard(
+        SpotlightCard(
           title: 'Home rhythm',
           subtitle: 'This helps us set a sensible baseline before we look at streaming, work, and upload-heavy habits.',
           child: DropdownButtonFormField<HomeProfile>(
@@ -981,7 +981,7 @@ class _UsageStep extends StatelessWidget {
           onChanged: onSecurityCamerasChanged,
         ),
         const SizedBox(height: 12),
-        _SpotlightCard(
+        SpotlightCard(
           title: 'Extra headroom',
           subtitle: 'These are the habits that often make households feel slower than expected even when browsing is fine.',
           child: Column(
@@ -1018,42 +1018,6 @@ class _UsageStep extends StatelessWidget {
     );
   }
 }
-
-class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard({
-    required this.title,
-    required this.subtitle,
-    required this.child,
-  });
-
-  final String title;
-  final String subtitle;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBF8),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF0E3D8)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(height: 1.4)),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
 class _AmbientGlow extends StatelessWidget {
   const _AmbientGlow({required this.color, required this.size});
 

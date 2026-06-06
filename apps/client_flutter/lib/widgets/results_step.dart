@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:streamsize_core/streamsize_core.dart';
 
 class ResultsStep extends StatelessWidget {
@@ -147,7 +146,7 @@ class ResultsStep extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         // Speed test section
-        _SpotlightCard(
+        SpotlightCard(
           title: 'Compare with your actual speed',
           subtitle: 'Optional — run a quick test to see how your current plan compares to our recommendation.',
           child: Column(
@@ -337,8 +336,8 @@ class _SpeedComparisonRow extends StatelessWidget {
   }
 }
 
-class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard({
+class SpotlightCard extends StatelessWidget {
+  const SpotlightCard({
     required this.title,
     required this.subtitle,
     required this.child,
