@@ -79,6 +79,22 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
   double? _measuredDownloadMbps;
   double? _measuredUploadMbps;
   int _stepIndex = 0;
+  int _speedTestRunId = 0;
+
+  static HouseholdScenario _defaultScenario() {
+    return HouseholdScenario(
+      homeProfile: HomeProfile.medium,
+      devices: const [],
+      simultaneous4kStreams: 2,
+      simultaneousHdStreams: 2,
+      simultaneousVideoCalls: 1,
+      remoteWorkers: 1,
+      onlineGamers: 1,
+      cloudBackupEnabled: true,
+      securityCameraCount: 2,
+      largeDownloadHabit: LargeDownloadHabit.weekly,
+    );
+  }
 
   List<DetectedDevice> get _allDevices {
     // Deduplicate: skip manual devices whose display name already appears in scan results.
@@ -94,18 +110,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
   void initState() {
     super.initState();
     _discovery = widget.discovery ?? MDNSDiscoveryService();
-    _scenario = HouseholdScenario(
-      homeProfile: HomeProfile.medium,
-      devices: const [],
-      simultaneous4kStreams: 2,
-      simultaneousHdStreams: 2,
-      simultaneousVideoCalls: 1,
-      remoteWorkers: 1,
-      onlineGamers: 1,
-      cloudBackupEnabled: true,
-      securityCameraCount: 2,
-      largeDownloadHabit: LargeDownloadHabit.weekly,
-    );
+    _scenario = _defaultScenario();
     _discoverDevices();
   }
 
@@ -133,6 +138,31 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
     });
   }
 
+  void _handleNext() {
+    if (_stepIndex < 3) {
+      setState(() {
+        _stepIndex += 1;
+      });
+    } else {
+      _resetFlow();
+    }
+  }
+
+  void _resetFlow() {
+    setState(() {
+      _stepIndex = 0;
+      _devices = [];
+      _manualDevices.clear();
+      _measuredDownloadMbps = null;
+      _measuredUploadMbps = null;
+      _speedTestRunId++;
+      _isSpeedTesting = false;
+      _isScanning = true;
+      _scenario = _defaultScenario();
+    });
+    _discoverDevices();
+  }
+
   void _onCategoryChanged(DetectedDevice device, DeviceCategory category) {
     setState(() {
       final di = _devices.indexWhere((d) => d.displayName == device.displayName);
@@ -158,12 +188,14 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
 
   Future<void> _runSpeedTest() async {
     if (_isSpeedTesting) return;
+    final runId = ++_speedTestRunId;
     setState(() => _isSpeedTesting = true);
     final results = await Future.wait([
       _speedTest.measureDownload(),
       _speedTest.measureUpload(),
     ]);
     if (!mounted) return;
+    if (runId != _speedTestRunId) return;
     setState(() {
       _measuredDownloadMbps = results[0];
       _measuredUploadMbps = results[1];
@@ -288,7 +320,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
                                     child: _IntroPanel(
                                       stepIndex: _stepIndex,
                                       recommendation: recommendation,
-                                      deviceCount: _devices.length,
+                                      deviceCount: _allDevices.length,
                                     ),
                                   ),
                                 ),
@@ -305,13 +337,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
                                               }),
                                       onNext: _isScanning
                                           ? null
-                                          : () => setState(() {
-                                                if (_stepIndex < steps.length - 1) {
-                                                  _stepIndex += 1;
-                                                } else {
-                                                  _stepIndex = 0;
-                                                }
-                                              }),
+                                          : _handleNext,
                                       child: steps[_stepIndex],
                                     ),
                                   ),
@@ -335,13 +361,7 @@ class _RecommendationFlowPageState extends State<RecommendationFlowPage> {
                                           }),
                                   onNext: _isScanning
                                       ? null
-                                      : () => setState(() {
-                                            if (_stepIndex < steps.length - 1) {
-                                              _stepIndex += 1;
-                                            } else {
-                                              _stepIndex = 0;
-                                            }
-                                          }),
+                                      : _handleNext,
                                   child: steps[_stepIndex],
                                 ),
                               ],
