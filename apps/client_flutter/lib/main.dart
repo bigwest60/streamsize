@@ -757,10 +757,9 @@ class _DevicesStep extends StatelessWidget {
     final highConfidence = devices.where((device) => device.confidence == ConfidenceScore.high).length;
     final wiredCount = devices.where((device) => device.connection == ConnectionType.ethernet).length;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Text('Review your home scan', style: theme.textTheme.headlineSmall),
         const SizedBox(height: 12),
         Text(
@@ -882,7 +881,6 @@ class _DevicesStep extends StatelessWidget {
           );
         }),
       ],
-    ),
     );
   }
 }
